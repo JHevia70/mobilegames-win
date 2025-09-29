@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "generate-article": "node scripts/generate-article-template.js",
+    "generate-article": "node scripts/generate-article.js",
+    "generate-article-template": "node scripts/generate-article-template.js",
+    "generate-article-ai": "node scripts/generate-article.js",
     "test-article": "node scripts/test-article.js"
   },
   "dependencies": {

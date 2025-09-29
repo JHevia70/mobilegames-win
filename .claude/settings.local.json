@@ -16,7 +16,13 @@
       "Bash(git init:*)",
       "Bash(npm run test-article:*)",
       "Bash(node:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(npm run generate-article:*)",
+      "Bash(npm run generate-article-ai:*)"
     ],
     "deny": [],
     "ask": []

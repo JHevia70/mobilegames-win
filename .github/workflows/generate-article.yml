@@ -27,7 +27,7 @@ jobs:
       run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json
 
     - name: Generate and publish article
-      run: node scripts/generate-article-template.js
+      run: node scripts/generate-article.js
       env:
         NODE_ENV: production
 

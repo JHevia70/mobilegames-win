@@ -52,7 +52,15 @@ const articleTypes = [
 
 // Generate article content with Gemini
 async function generateArticleContent(title, type, category = '') {
-  const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({
+    model: 'models/gemini-2.5-flash',
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.8,
+      topK: 40,
+      maxOutputTokens: 2048,
+    }
+  });
 
   const searchTerm = category || type;
   const prompt = `
