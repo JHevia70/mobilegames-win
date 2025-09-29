@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.pcgamer.com)",
+      "WebFetch(domain:www.allkeyshop.com)",
+      "Bash(npm install)",
+      "Bash(npm audit:*)",
+      "Bash(npm update)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(firebase login:*)",
+      "Bash(firebase init:*)",
+      "Bash(printf:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(firebase hosting:*)",
+      "Bash(git init:*)",
+      "Bash(npm run test-article:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

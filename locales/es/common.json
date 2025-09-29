@@ -1,0 +1,80 @@
+{
+  "site": {
+    "title": "MobileGames.win - Las Mejores Reviews de Juegos Móviles",
+    "description": "Descubre los mejores juegos móviles para Android e iOS. Reviews detalladas, comparativas TOP 5 y guías completas para encontrar tu próximo juego favorito.",
+    "keywords": "juegos móviles, Android, iOS, reviews, top 5, mejores juegos"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "articles": "Artículos",
+    "categories": "Categorías",
+    "about": "Acerca de",
+    "admin": "Admin",
+    "newsletter": "Newsletter"
+  },
+  "common": {
+    "readMore": "Leer más",
+    "share": "Compartir",
+    "search": "Buscar...",
+    "filter": "Filtrar",
+    "category": "Categoría",
+    "date": "Fecha",
+    "author": "Autor",
+    "loading": "Cargando...",
+    "error": "Error",
+    "noResults": "No se encontraron resultados",
+    "darkMode": "Modo oscuro",
+    "lightMode": "Modo claro"
+  },
+  "home": {
+    "hero": {
+      "title": "Descubre los Mejores Juegos Móviles",
+      "subtitle": "Reviews profesionales, comparativas TOP 5 y las últimas tendencias en gaming móvil",
+      "cta": "Explorar Artículos"
+    },
+    "featured": "Artículos Destacados",
+    "latest": "Últimos Artículos",
+    "categories": "Categorías Populares"
+  },
+  "article": {
+    "publishedOn": "Publicado el",
+    "updatedOn": "Actualizado el",
+    "readTime": "min de lectura",
+    "tags": "Etiquetas",
+    "comparison": "Tabla Comparativa",
+    "downloadOn": "Descargar en",
+    "googlePlay": "Google Play",
+    "appStore": "App Store",
+    "rating": "Puntuación",
+    "genre": "Género",
+    "size": "Tamaño",
+    "inAppPurchases": "Compras integradas",
+    "relatedArticles": "Artículos Relacionados"
+  },
+  "newsletter": {
+    "title": "Suscríbete a nuestra Newsletter",
+    "subtitle": "Recibe las últimas reviews y tendencias en gaming móvil",
+    "placeholder": "Tu email",
+    "subscribe": "Suscribirse",
+    "success": "¡Suscripción exitosa!",
+    "error": "Error al suscribirse"
+  },
+  "admin": {
+    "dashboard": "Panel de Control",
+    "articles": "Gestión de Artículos",
+    "subscribers": "Suscriptores",
+    "analytics": "Analíticas",
+    "settings": "Configuración",
+    "newArticle": "Nuevo Artículo",
+    "editArticle": "Editar Artículo",
+    "deleteArticle": "Eliminar Artículo",
+    "publish": "Publicar",
+    "draft": "Borrador",
+    "title": "Título",
+    "content": "Contenido",
+    "excerpt": "Extracto",
+    "featuredImage": "Imagen destacada",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  }
+}

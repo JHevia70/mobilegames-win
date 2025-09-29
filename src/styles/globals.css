@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 217 32% 17%;
+    --foreground: 0 0% 98%;
+    --card: 217 32% 20%;
+    --card-foreground: 0 0% 98%;
+    --popover: 217 32% 17%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 78% 43%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 217 32% 25%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 217 32% 25%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 25%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 32% 30%;
+    --input: 217 32% 25%;
+    --ring: 0 78% 43%;
+    --radius: 0.5rem;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 217 32% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 217 32% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 32% 17%;
+    --primary: 0 78% 43%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 217 32% 17%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 217 32% 17%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 0 78% 43%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .gaming-gradient {
+    background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #06B6D4 100%);
+  }
+
+  .gaming-border {
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+
+  .gaming-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #8B5CF6, #EC4899, #06B6D4);
+  }
+
+  .star-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 60% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(249, 115, 22, 0.1) 0%, transparent 50%);
+  }
+
+  .text-gaming-gradient {
+    @apply bg-gradient-to-r from-gaming-purple via-gaming-pink to-gaming-cyan bg-clip-text text-transparent;
+  }
+
+  .sparkle-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sparkle-effect::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+      radial-gradient(circle at 25% 25%, rgba(255, 215, 0, 0.8) 0%, transparent 2%),
+      radial-gradient(circle at 75% 75%, rgba(255, 215, 0, 0.6) 0%, transparent 1.5%),
+      radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.9) 0%, transparent 1%),
+      radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.7) 0%, transparent 1.5%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 1%),
+      radial-gradient(circle at 10% 30%, rgba(255, 215, 0, 0.5) 0%, transparent 2%);
+    animation: sparkle 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .prize-glow {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.5),
+      0 0 40px rgba(255, 215, 0, 0.3),
+      0 0 60px rgba(255, 215, 0, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 215, 0, 0.8);
+  }
+
+  .neon-glow {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .particle {
+    position: absolute;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float-particle 6s infinite ease-in-out;
+  }
+
+  .gift-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gift-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 100%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.8) 50%,
+      transparent 70%
+    );
+    animation: shine 2s infinite;
+    transform: rotate(45deg);
+  }
+
+  .diamond-sparkle {
+    position: relative;
+  }
+
+  .diamond-sparkle::before,
+  .diamond-sparkle::after {
+    content: '✨';
+    position: absolute;
+    font-size: 1.5rem;
+    animation: sparkle-rotate 2s infinite;
+  }
+
+  .diamond-sparkle::before {
+    top: -10px;
+    right: -10px;
+    animation-delay: 0s;
+  }
+
+  .diamond-sparkle::after {
+    bottom: -10px;
+    left: -10px;
+    animation-delay: 1s;
+  }
+
+  .treasure-chest {
+    background: linear-gradient(145deg, #8B4513 0%, #DAA520 50%, #FFD700 100%);
+    box-shadow:
+      0 10px 30px rgba(218, 165, 32, 0.4),
+      inset 0 5px 10px rgba(255, 255, 255, 0.3);
+    position: relative;
+  }
+
+  .treasure-chest::before {
+    content: '💎';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    animation: treasure-bounce 1.5s infinite;
+  }
+
+  .star-rain {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .falling-star {
+    position: absolute;
+    color: #FFD700;
+    font-size: 1rem;
+    animation: fall-down 3s infinite linear;
+  }
+}

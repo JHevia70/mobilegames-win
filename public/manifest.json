@@ -1,0 +1,21 @@
+{
+  "name": "MobileGames.win - Las Mejores Reviews de Juegos Móviles",
+  "short_name": "MobileGames.win",
+  "description": "Descubre los mejores juegos móviles para Android e iOS. Reviews detalladas, comparativas TOP 5 y guías completas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#22374e",
+  "theme_color": "#dc191b",
+  "icons": [
+    {
+      "src": "/images/MGIcon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/MGIcon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
