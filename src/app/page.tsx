@@ -2,21 +2,23 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, TrendingUp, Users, Award, Star, Clock, User } from 'lucide-react';
+import { Calendar, TrendingUp, Users, Award, Star, Clock, User, Gamepad2, Swords, Brain, Zap, Puzzle, Circle, Settings } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import ArticleCard from '@/components/ui/ArticleCard';
-import {
-  FloatingParticles,
-  StarRain,
-} from '@/components/ui/VisualEffects';
+import DynamicArticles from '@/components/ui/DynamicArticles';
+import CategoryModal from '@/components/ui/CategoryModal';
+import BreakingNewsBanner from '@/components/ui/BreakingNewsBanner';
+import { type Article } from '@/lib/articles';
 import NewspaperHeader from '@/components/layout/NewspaperHeader';
 import Footer from '@/components/layout/Footer';
 
 const HomePage = () => {
-  const heroArticle = {
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const heroArticle: Article = {
     id: '1',
     title: 'El Futuro del Gaming Móvil: Análisis Completo de las Tendencias 2024',
+    content: 'Un análisis profundo de cómo la industria del gaming móvil está evolucionando...',
     excerpt: 'Un análisis profundo de cómo la industria del gaming móvil está evolucionando, desde gráficos avanzados hasta nuevas mecánicas de juego que están redefiniendo la experiencia móvil.',
     image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop',
     category: 'Análisis',
@@ -25,12 +27,15 @@ const HomePage = () => {
     readTime: 12,
     rating: 4.9,
     slug: 'futuro-gaming-movil-2024',
+    type: 'analysis',
+    status: 'published',
   };
 
-  const featuredArticles = [
+  const featuredArticles: Article[] = [
     {
       id: '2',
       title: 'TOP 5 Mejores Juegos RPG para Android 2024',
+      content: 'Descubre los juegos de rol más épicos...',
       excerpt: 'Descubre los juegos de rol más épicos que puedes disfrutar en tu dispositivo Android este año, desde aventuras épicas hasta mundos abiertos.',
       image: 'https://images.unsplash.com/photo-1542549808-a69a91d4a10d?w=800&h=400&fit=crop',
       category: 'RPG',
@@ -39,10 +44,13 @@ const HomePage = () => {
       readTime: 8,
       rating: 4.8,
       slug: 'top-5-mejores-juegos-rpg-android-2024',
+      type: 'top5',
+      status: 'published',
     },
     {
       id: '3',
       title: 'Estrategia Mobile: Los 5 Juegos Que Debes Probar',
+      content: 'Pon a prueba tu mente estratégica...',
       excerpt: 'Pon a prueba tu mente estratégica con estos increíbles juegos de estrategia para móvil que te mantendrán pensando.',
       image: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&h=400&fit=crop',
       category: 'Estrategia',
@@ -51,10 +59,13 @@ const HomePage = () => {
       readTime: 6,
       rating: 4.6,
       slug: 'estrategia-mobile-5-juegos-que-debes-probar',
+      type: 'top5',
+      status: 'published',
     },
     {
       id: '4',
       title: 'Acción Sin Límites: TOP 5 Juegos de Acción iOS',
+      content: 'Adrenalina pura en tu iPhone...',
       excerpt: 'Adrenalina pura en tu iPhone con los mejores juegos de acción del momento.',
       image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800&h=400&fit=crop',
       category: 'Acción',
@@ -63,10 +74,13 @@ const HomePage = () => {
       readTime: 7,
       rating: 4.7,
       slug: 'accion-sin-limites-top-5-juegos-accion-ios',
+      type: 'top5',
+      status: 'published',
     },
     {
       id: '5',
       title: 'Puzzle Games: Ejercita Tu Mente Mientras Te Diviertes',
+      content: 'Los mejores juegos de puzzle...',
       excerpt: 'Los mejores juegos de puzzle que combinarán diversión con desafío mental.',
       image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=800&h=400&fit=crop',
       category: 'Puzzle',
@@ -75,30 +89,32 @@ const HomePage = () => {
       readTime: 5,
       rating: 4.5,
       slug: 'puzzle-games-ejercita-mente-mientras-diviertes',
+      type: 'guide',
+      status: 'published',
     },
   ];
 
   const stats = [
     {
-      icon: '🎮',
+      icon: 'gamepad',
       value: '500+',
       label: 'Juegos Analizados',
       color: 'text-gaming-gold',
     },
     {
-      icon: '👥',
+      icon: 'users',
       value: '10K+',
       label: 'Lectores Mensuales',
       color: 'text-gaming-cyan',
     },
     {
-      icon: '📈',
+      icon: 'trending-up',
       value: '95%',
       label: 'Precisión en Reviews',
       color: 'text-gaming-green',
     },
     {
-      icon: '🏆',
+      icon: 'award',
       value: '50+',
       label: 'TOP 5 Publicados',
       color: 'text-gaming-purple',
@@ -106,165 +122,190 @@ const HomePage = () => {
   ];
 
   const categories = [
-    { name: 'RPG', count: 45, color: 'bg-gaming-purple', icon: '⚔️' },
-    { name: 'Estrategia', count: 32, color: 'bg-gaming-cyan', icon: '🧠' },
-    { name: 'Acción', count: 28, color: 'bg-gaming-red', icon: '💥' },
-    { name: 'Puzzle', count: 24, color: 'bg-gaming-orange', icon: '🧩' },
-    { name: 'Deportes', count: 18, color: 'bg-gaming-green', icon: '⚽' },
-    { name: 'Simulación', count: 15, color: 'bg-gaming-pink', icon: '🏗️' },
+    { name: 'RPG', count: 45, color: 'bg-gaming-purple', icon: 'sword' },
+    { name: 'Estrategia', count: 32, color: 'bg-gaming-cyan', icon: 'brain' },
+    { name: 'Acción', count: 28, color: 'bg-gaming-red', icon: 'zap' },
+    { name: 'Puzzle', count: 24, color: 'bg-gaming-orange', icon: 'puzzle' },
+    { name: 'Deportes', count: 18, color: 'bg-gaming-green', icon: 'circle' },
+    { name: 'Simulación', count: 15, color: 'bg-gaming-pink', icon: 'settings' },
   ];
 
   const handleReadMore = (slug: string) => {
-    window.location.href = `/articles/${slug}`;
+    window.location.href = `/article?slug=${slug}`;
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    setSelectedCategory(categoryName);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <NewspaperHeader locale="es" />
-
-      {/* Subtle background effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <StarRain density="light" />
-        <FloatingParticles density="light" />
-      </div>
+      <NewspaperHeader locale="es" onCategoryClick={handleCategoryClick} />
 
       <main className="relative">
         {/* Breaking News Banner */}
-        <div className="bg-gaming-red text-white py-2">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center space-x-2 text-sm font-medium">
-              <span className="bg-white text-gaming-red px-2 py-1 rounded text-xs font-bold">ÚLTIMA HORA</span>
-              <span>Nuevo análisis: Los mejores juegos móviles de enero 2024</span>
-            </div>
-          </div>
-        </div>
+        <BreakingNewsBanner />
 
-        {/* Hero Article */}
-        <section className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <ArticleCard
-              {...heroArticle}
-              size="hero"
-              onReadMore={handleReadMore}
-            />
-          </div>
-        </section>
-
-        {/* Main Content Grid */}
-        <section className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-              {/* Main Articles Column */}
-              <div className="lg:col-span-3">
-                {/* Section Header */}
-                <div className="mb-8 pb-4 border-b-2 border-gaming-red">
-                  <h2 className="text-3xl font-headline font-bold text-gray-900 dark:text-white">
-                    Últimas Reviews
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    Análisis profesionales de los mejores juegos móviles
-                  </p>
-                </div>
-
-                {/* Articles Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                  {featuredArticles.slice(0, 4).map((article, index) => (
-                    <ArticleCard
+        {/* Dynamic Articles with Firestore integration */}
+        <DynamicArticles
+          fallbackArticles={[heroArticle, ...featuredArticles]}
+          renderSidebar={(firebaseArticles) => (
+            <>
+              {/* TOP Articles Card */}
+              <Card className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center text-gaming-red">
+                    <TrendingUp className="w-5 h-5 mr-2" />
+                    Trending
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {firebaseArticles.slice(0, 4).map((article, index) => (
+                    <div
                       key={article.id}
-                      {...article}
-                      size={index < 2 ? 'large' : 'medium'}
-                      onReadMore={handleReadMore}
-                    />
+                      className="group cursor-pointer"
+                      onClick={() => handleReadMore(article.slug)}
+                    >
+                      <div className="flex items-start space-x-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <div className="flex-shrink-0 relative">
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            className="w-14 h-14 rounded-lg object-cover"
+                          />
+                          <div className="absolute -top-2 -left-2 w-6 h-6 bg-gaming-red text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-gaming-red transition-colors line-clamp-2 leading-snug mb-1">
+                            {article.title}
+                          </h4>
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-3">
+                            <span className="flex items-center">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {article.readTime} min
+                            </span>
+                            <span className="flex items-center">
+                              <Star className="w-3 h-3 mr-1 text-yellow-400 fill-current" />
+                              {article.rating}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </div>
+                </CardContent>
+              </Card>
 
-                {/* More Articles */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-headline font-bold text-gray-900 dark:text-white mb-6">
-                    Más Análisis
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {featuredArticles.slice(1).map((article) => (
-                      <ArticleCard
-                        key={article.id + '_more'}
-                        {...article}
-                        size="small"
-                        onReadMore={handleReadMore}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {/* Stats Card */}
+              <Card className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-gaming-red">
+                    <TrendingUp className="w-5 h-5 mr-2" />
+                    En Números
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {stats.map((stat, index) => {
+                    const getIcon = (iconName: string) => {
+                      const iconProps = { className: "w-5 h-5 text-gaming-red" };
+                      switch(iconName) {
+                        case 'gamepad': return <Gamepad2 {...iconProps} />;
+                        case 'users': return <Users {...iconProps} />;
+                        case 'trending-up': return <TrendingUp {...iconProps} />;
+                        case 'award': return <Award {...iconProps} />;
+                        default: return <Star {...iconProps} />;
+                      }
+                    };
 
-              {/* Sidebar */}
-              <div className="lg:col-span-1">
-                {/* Stats Card */}
-                <Card className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-gaming-red">
-                      <TrendingUp className="w-5 h-5 mr-2" />
-                      En Números
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {stats.map((stat, index) => (
+                    return (
                       <div key={stat.label} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="text-2xl">{stat.icon}</span>
+                          {getIcon(stat.icon)}
                           <span className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</span>
                         </div>
                         <span className="font-bold text-gaming-red">{stat.value}</span>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                    );
+                  })}
+                </CardContent>
+              </Card>
 
-                {/* Categories Card */}
-                <Card className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-gaming-red">Categorías</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {categories.map((category) => (
-                        <div key={category.name} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              {/* Categories Card */}
+              <Card className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-gaming-red">Categorías</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {categories.map((category) => {
+                      const getCategoryIcon = (iconName: string) => {
+                        const iconProps = { className: "w-4 h-4 text-gaming-red" };
+                        switch(iconName) {
+                          case 'sword': return <Swords {...iconProps} />;
+                          case 'brain': return <Brain {...iconProps} />;
+                          case 'zap': return <Zap {...iconProps} />;
+                          case 'puzzle': return <Puzzle {...iconProps} />;
+                          case 'circle': return <Circle {...iconProps} />;
+                          case 'settings': return <Settings {...iconProps} />;
+                          default: return <Star {...iconProps} />;
+                        }
+                      };
+
+                      return (
+                        <div
+                          key={category.name}
+                          className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group cursor-pointer"
+                          onClick={() => handleCategoryClick(category.name)}
+                        >
                           <div className="flex items-center space-x-2">
-                            <span className="text-lg">{category.icon}</span>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">{category.name}</span>
+                            {getCategoryIcon(category.icon)}
+                            <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-gaming-red transition-colors">{category.name}</span>
                           </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400">{category.count}</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Newsletter Signup */}
-                <Card className="bg-gradient-to-br from-gaming-red to-red-600 text-white border-0">
-                  <CardContent className="p-6">
-                    <h3 className="font-headline font-bold text-xl mb-2">Newsletter Gaming</h3>
-                    <p className="text-red-100 text-sm mb-4">
-                      Recibe las últimas reviews y noticias directamente en tu email
-                    </p>
-                    <div className="space-y-3">
-                      <input
-                        type="email"
-                        placeholder="tu@email.com"
-                        className="w-full px-3 py-2 rounded text-gray-900 text-sm focus:ring-2 focus:ring-white focus:outline-none"
-                      />
-                      <Button className="w-full bg-white text-gaming-red hover:bg-gray-100 font-medium">
-                        Suscribirse
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </section>
+              {/* Newsletter Signup */}
+              <Card className="bg-gradient-to-br from-gaming-red to-red-600 text-white border-0">
+                <CardContent className="p-6">
+                  <h3 className="font-headline font-bold text-xl mb-2">Newsletter Gaming</h3>
+                  <p className="text-red-100 text-sm mb-4">
+                    Recibe las últimas reviews y noticias directamente en tu email
+                  </p>
+                  <div className="space-y-3">
+                    <input
+                      type="email"
+                      placeholder="tu@email.com"
+                      className="w-full px-3 py-2 rounded text-gray-900 text-sm focus:ring-2 focus:ring-white focus:outline-none"
+                    />
+                    <Button className="w-full bg-white text-gaming-red hover:bg-gray-100 font-medium">
+                      Suscribirse
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        />
       </main>
       <Footer locale="es" />
+
+      {/* Modals */}
+      <CategoryModal
+        isOpen={selectedCategory !== null}
+        category={selectedCategory}
+        onClose={() => setSelectedCategory(null)}
+        onArticleSelect={(slug) => {
+          setSelectedCategory(null);
+          window.location.href = `/article?slug=${slug}`;
+        }}
+      />
     </div>
   );
 };

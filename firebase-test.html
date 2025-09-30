@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Connection Test</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>Firestore Connection Test</h1>
+    
+    <div id="status" class="info">
+        Ready to test Firebase connection. Click "Test Connection" to begin.
+    </div>
+    
+    <button id="testBtn">Test Connection</button>
+    <button id="testPublishedBtn">Test Published Articles</button>
+    <button id="testAllBtn">Test All Articles</button>
+    
+    <div id="result"></div>
+
+    <script>
+        // Initialize Firebase with the same config as the app
+        const firebaseConfig = {
+            apiKey: "AIzaSyCywwj_27AOLJVq_hrhArfN--k1eStHOdA",
+            authDomain: "mobilegames-win.firebaseapp.com",
+            projectId: "mobilegames-win",
+            storageBucket: "mobilegames-win.appspot.com",
+            messagingSenderId: "1056498540339",
+            appId: "1:1056498540339:web:2a9c6e4d8b3d5e6f7a8b9c",
+            measurementId: "G-1234567890"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        const testBtn = document.getElementById('testBtn');
+        const testPublishedBtn = document.getElementById('testPublishedBtn');
+        const testAllBtn = document.getElementById('testAllBtn');
+
+        async function testConnection() {
+            statusDiv.textContent = 'Testing basic connection...';
+            statusDiv.className = 'info';
+            
+            try {
+                // Test basic access
+                const testQuery = db.collection('articles').limit(1);
+                const snapshot = await testQuery.get();
+                
+                statusDiv.textContent = '✅ Basic connection successful!';
+                statusDiv.className = 'success';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="success result">
+                        <h3>Basic Connection Test Results:</h3>
+                        <p>Documents in articles collection: ${snapshot.size}</p>
+                        ${snapshot.docs.length > 0 ? 
+                            `<p>Sample document ID: ${snapshot.docs[0].id}</p>` : 
+                            '<p>No documents found in collection</p>'
+                        }
+                    </div>
+                `;
+                
+                return true;
+            } catch (error) {
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                statusDiv.className = 'error';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="error result">
+                        <h3>Connection Error:</h3>
+                        <p><strong>Message:</strong> ${error.message}</p>
+                        <p><strong>Code:</strong> ${error.code || 'N/A'}</p>
+                    </div>
+                `;
+                
+                return false;
+            }
+        }
+
+        async function testPublishedArticles() {
+            statusDiv.textContent = 'Testing published articles query...';
+            statusDiv.className = 'info';
+            
+            try {
+                const publishedQuery = db.collection('articles')
+                    .where('status', '==', 'published')
+                    .orderBy('createdAt', 'desc')
+                    .limit(10);
+                
+                const snapshot = await publishedQuery.get();
+                
+                statusDiv.textContent = `✅ Found ${snapshot.size} published articles!`;
+                statusDiv.className = 'success';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="success result">
+                        <h3>Published Articles Test Results:</h3>
+                        <p>Published articles found: ${snapshot.size}</p>
+                        ${snapshot.docs.map((doc, i) => `
+                            <div style="margin: 10px 0; padding: 5px; border-bottom: 1px solid #ccc;">
+                                <strong>${i+1}. ${doc.data().title || 'No title'}</strong><br>
+                                ID: ${doc.id}<br>
+                                Status: ${doc.data().status || 'No status'}<br>
+                                Category: ${doc.data().category || 'No category'}<br>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                return true;
+            } catch (error) {
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                statusDiv.className = 'error';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="error result">
+                        <h3>Published Articles Query Error:</h3>
+                        <p><strong>Message:</strong> ${error.message}</p>
+                        <p><strong>Code:</strong> ${error.code || 'N/A'}</p>
+                    </div>
+                `;
+                
+                return false;
+            }
+        }
+
+        async function testAllArticles() {
+            statusDiv.textContent = 'Testing all articles query...';
+            statusDiv.className = 'info';
+            
+            try {
+                const allQuery = db.collection('articles')
+                    .orderBy('createdAt', 'desc')
+                    .limit(10);
+                
+                const snapshot = await allQuery.get();
+                
+                statusDiv.textContent = `✅ Found ${snapshot.size} total articles!`;
+                statusDiv.className = 'success';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="success result">
+                        <h3>All Articles Test Results:</h3>
+                        <p>Total articles found: ${snapshot.size}</p>
+                        ${snapshot.docs.map((doc, i) => `
+                            <div style="margin: 10px 0; padding: 5px; border-bottom: 1px solid #ccc;">
+                                <strong>${i+1}. ${doc.data().title || 'No title'}</strong><br>
+                                ID: ${doc.id}<br>
+                                Status: ${doc.data().status || 'No status'}<br>
+                                Category: ${doc.data().category || 'No category'}<br>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                return true;
+            } catch (error) {
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+                statusDiv.className = 'error';
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="error result">
+                        <h3>All Articles Query Error:</h3>
+                        <p><strong>Message:</strong> ${error.message}</p>
+                        <p><strong>Code:</strong> ${error.code || 'N/A'}</p>
+                    </div>
+                `;
+                
+                return false;
+            }
+        }
+
+        testBtn.addEventListener('click', testConnection);
+        testPublishedBtn.addEventListener('click', testPublishedArticles);
+        testAllBtn.addEventListener('click', testAllArticles);
+    </script>
+</body>
+</html>

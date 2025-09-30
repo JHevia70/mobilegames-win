@@ -4,9 +4,9 @@ const { createApi } = require('unsplash-js');
 const fs = require('fs');
 
 // Initialize services
-const genAI = new GoogleGenerativeAI('AIzaSyCywwj_27AOLJVq_hrhArfN--k1eStHOdA');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const unsplash = createApi({
-  accessKey: '4qjo4eTlRYPjt-EJ1romAUY9VGg2Pbqb3Fd8uyorge0',
+  accessKey: process.env.UNSPLASH_ACCESS_KEY,
 });
 
 // Initialize Firebase Admin
@@ -50,39 +50,107 @@ const articleTypes = [
   }
 ];
 
+// Search web for current gaming trends
+async function searchGamingTrends(topic) {
+  const model = genAI.getGenerativeModel({
+    model: 'models/gemini-2.0-flash-exp',
+    tools: [{
+      googleSearch: {}
+    }],
+  });
+
+  const searchPrompt = `Busca información actualizada sobre "${topic}" en juegos móviles.
+Necesito:
+- Juegos móviles reales y populares relacionados con ${topic}
+- Tendencias actuales en gaming móvil sobre este tema
+- Datos y estadísticas recientes
+- Periféricos o accesorios relevantes si aplica
+
+Proporciona información verificable y actual.`;
+
+  try {
+    console.log(`🔍 Searching web for: ${topic}`);
+    const result = await model.generateContent(searchPrompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error searching trends:', error);
+    return '';
+  }
+}
+
 // Generate article content with Gemini
 async function generateArticleContent(title, type, category = '') {
   const model = genAI.getGenerativeModel({
-    model: 'models/gemini-2.5-flash',
+    model: 'models/gemini-2.0-flash-exp',
     generationConfig: {
       temperature: 0.7,
-      topP: 0.8,
-      topK: 40,
-      maxOutputTokens: 2048,
+      topP: 0.95,
+      topK: 64,
+      maxOutputTokens: 8192,
+      responseMimeType: "text/plain",
     }
   });
 
   const searchTerm = category || type;
+
+  // First, search for current trends and real games
+  const trendsInfo = await searchGamingTrends(searchTerm);
+
   const prompt = `
-Escribe un artículo profesional sobre juegos móviles con el título: "${title}"
+Escribe un artículo profesional COMPLETO sobre juegos móviles con el título: "${title}"
 
-Requisitos:
-- Escribe en español
-- Estilo periodístico profesional
-- 800-1200 palabras
-- Incluye introducción, desarrollo y conclusión
-- Menciona juegos específicos (pueden ser ficticios pero realistas)
-- Usa un tono experto pero accesible
-- Incluye datos y tendencias del gaming móvil
-- Finaliza con una recomendación clara
+INFORMACIÓN DE CONTEXTO (extraída de búsquedas web actuales):
+${trendsInfo}
 
-Estructura:
-1. Introducción atractiva
-2. Desarrollo con puntos clave
-3. Análisis detallado
-4. Conclusión con recomendación
+REQUISITOS OBLIGATORIOS:
+- Escribe en español de España
+- Estilo periodístico profesional y detallado
+- IMPORTANTE: El artículo debe estar COMPLETO, sin cortes ni texto incompleto
+- Longitud: 1800-2200 palabras
+- SOLO menciona juegos REALES que existan en las tiendas (App Store / Google Play)
+- PROHIBIDO inventar juegos, desarrolladoras o datos falsos
+- Usa SOLO información verificable de la búsqueda web proporcionada
+- Menciona periféricos o accesorios reales si es relevante para el tema
+- Incluye datos específicos y tendencias actuales
+- Tono experto pero accesible
 
-Genera solo el contenido del artículo, sin títulos de secciones.
+ESTRUCTURA OBLIGATORIA:
+
+## Introducción
+Introducción atractiva y contextualizada (250-300 palabras)
+
+## [Apartado 1 - título específico relacionado con el tema]
+Primer punto principal desarrollado completamente (350-400 palabras)
+[IMG_PLACEHOLDER_1: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+
+## [Apartado 2 - título específico relacionado con el tema]
+Segundo punto principal desarrollado completamente (350-400 palabras)
+[IMG_PLACEHOLDER_2: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+
+## [Apartado 3 - título específico relacionado con el tema]
+Tercer punto principal desarrollado completamente (350-400 palabras)
+[IMG_PLACEHOLDER_3: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+
+## Conclusión
+Conclusión completa con recomendaciones claras y llamado a la acción (250-300 palabras)
+
+CRÍTICO:
+- Completa TODAS las secciones hasta el final
+- La conclusión debe estar COMPLETA con párrafo final
+- NO cortes el texto a mitad de oración
+- Asegúrate de cerrar todas las ideas presentadas
+- Menciona 5-8 juegos reales verificables
+
+IMÁGENES - MUY IMPORTANTE:
+- Cada [IMG_PLACEHOLDER_X] debe tener una descripción ÚNICA y ESPECÍFICA
+- Usa nombres EXACTOS de juegos mencionados en esa sección
+- Ejemplos CORRECTOS:
+  * [IMG_PLACEHOLDER_1: Clash of Clans strategy gameplay]
+  * [IMG_PLACEHOLDER_2: PUBG Mobile battle royale action]
+  * [IMG_PLACEHOLDER_3: Razer Kishi mobile controller]
+- NO uses descripciones genéricas como "juego de estrategia"
+- Cada imagen debe ser de un juego o concepto DIFERENTE
 `;
 
   try {
@@ -96,26 +164,73 @@ Genera solo el contenido del artículo, sin títulos de secciones.
 }
 
 // Get relevant image from Unsplash
-async function getArticleImage(searchTerm) {
+async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
   try {
+    const dimensions = size === 'hero'
+      ? 'w=1200&h=600&fit=crop'
+      : 'w=800&h=500&fit=crop';
+
+    // Use pageOverride if provided, otherwise random
+    const page = pageOverride || Math.floor(Math.random() * 5) + 1;
+
     const result = await unsplash.search.getPhotos({
-      query: `mobile gaming smartphone games ${searchTerm}`,
-      page: 1,
-      perPage: 1,
+      query: `${searchTerm} mobile gaming`,
+      page: page,
+      perPage: 10, // Get more results to pick from
       orientation: 'landscape'
     });
 
     if (result.response && result.response.results.length > 0) {
-      const photo = result.response.results[0];
-      return `${photo.urls.regular}?w=1200&h=600&fit=crop`;
+      // Pick a random photo from the results for more variety
+      const randomIndex = Math.floor(Math.random() * result.response.results.length);
+      const photo = result.response.results[randomIndex];
+      return `${photo.urls.regular}?${dimensions}&sig=${Date.now()}`;
     }
 
     // Fallback image
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop';
+    return `https://images.unsplash.com/photo-1511512578047-dfb367046420?${dimensions}`;
   } catch (error) {
     console.error('Error fetching image:', error);
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop';
+    return `https://images.unsplash.com/photo-1511512578047-dfb367046420?${dimensions}`;
   }
+}
+
+// Process content and replace image placeholders
+async function processContentImages(content, searchTerm) {
+  console.log('🖼️  Processing article images...');
+
+  // Find all image placeholders
+  const placeholderRegex = /\[IMG_PLACEHOLDER_(\d+):\s*([^\]]+)\]/g;
+  let match;
+  const replacements = [];
+
+  while ((match = placeholderRegex.exec(content)) !== null) {
+    const [fullMatch, index, description] = match;
+    replacements.push({ fullMatch, index, description });
+  }
+
+  console.log(`Found ${replacements.length} image placeholders`);
+
+  // Fetch images for each placeholder with specific search terms
+  let processedContent = content;
+  for (let i = 0; i < replacements.length; i++) {
+    const { fullMatch, index, description } = replacements[i];
+    // Use the description directly as it should contain game names or specific topics
+    const specificSearchTerm = description.includes('mobile game')
+      ? description
+      : `${description} mobile game gameplay`;
+
+    // Add page parameter to get different results for each image
+    const imageUrl = await getArticleImage(specificSearchTerm, 'inline', i + 1);
+    const imageHtml = `\n\n<img src="${imageUrl}" alt="${description}" class="article-image" />\n\n`;
+    processedContent = processedContent.replace(fullMatch, imageHtml);
+    console.log(`✓ Replaced placeholder ${index}: "${description}" (page ${i + 1})`);
+
+    // Add delay to avoid rate limiting and get different images
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
+
+  return processedContent;
 }
 
 // Generate article slug
@@ -210,18 +325,23 @@ async function generateAndPublishArticle() {
 
     console.log(`📝 Title: ${title}`);
 
-    // Generate content and get image
-    const [content, imageUrl] = await Promise.all([
-      generateArticleContent(title, articleType.type, searchTerm),
-      getArticleImage(searchTerm)
-    ]);
+    // Generate content
+    console.log('📄 Generating article content...');
+    let content = await generateArticleContent(title, articleType.type, searchTerm);
+
+    // Process images in content
+    content = await processContentImages(content, searchTerm);
+
+    // Get hero image
+    console.log('🖼️  Fetching hero image...');
+    const imageUrl = await getArticleImage(searchTerm, 'hero');
 
     // Create article object
     const article = {
-      id: Date.now().toString(),
+
       title,
       content,
-      excerpt: content.substring(0, 200) + '...',
+      excerpt: content.replace(/<img[^>]*>/g, '').substring(0, 200) + '...',
       image: imageUrl,
       category: searchTerm,
       author: authors[Math.floor(Math.random() * authors.length)],
@@ -240,7 +360,8 @@ async function generateAndPublishArticle() {
     };
 
     // Save to Firestore
-    await db.collection('articles').doc(article.id).set(article);
+    const docRef = await db.collection('articles').add(article);
+    await docRef.update({ id: docRef.id });
 
     console.log('✅ Article published successfully!');
     console.log(`📖 Slug: ${article.slug}`);

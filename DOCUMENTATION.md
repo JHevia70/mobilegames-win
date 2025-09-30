@@ -71,86 +71,148 @@
 ```
 mobilegames-win/
 ├── .github/workflows/
-│   └── generate-article.yml          # GitHub Actions para automatización
+│   ├── daily-opinion.yml            # Workflow para opinión diaria (9:00 AM)
+│   ├── weekly-top5.yml              # Workflow para TOP5 semanal (Martes 10:00 AM)
+│   └── breaking-news.yml            # Workflow para noticias (cada 12h)
 ├── scripts/
-│   ├── generate-article.js           # Generador principal con Gemini AI
-│   ├── generate-article-template.js  # Sistema de respaldo con templates
-│   ├── test-gemini-models.js         # Testing de modelos Gemini
-│   ├── debug-gemini.js              # Debugging de Gemini API
-│   └── test-working-gemini.js        # Verificación de funcionamiento
+│   ├── generate-daily-opinion.js    # Generador de artículos de opinión
+│   ├── generate-weekly-top5.js      # Generador de rankings TOP5
+│   ├── generate-breaking-news.js    # Generador de noticias de última hora
+│   ├── generate-article.js          # Generador principal (legacy, manual)
+│   ├── generate-article-template.js # Sistema de respaldo con templates
+│   ├── test-gemini-models.js        # Testing de modelos Gemini
+│   ├── debug-gemini.js             # Debugging de Gemini API
+│   └── test-working-gemini.js       # Verificación de funcionamiento
 ├── src/
 │   ├── components/
 │   │   ├── ui/
-│   │   │   ├── ArticleCard.tsx       # Componente de artículo
-│   │   │   ├── DynamicArticles.tsx   # Artículos dinámicos de Firestore
-│   │   │   └── VisualEffects.tsx     # Efectos visuales gaming
+│   │   │   ├── ArticleCard.tsx        # Componente de artículo
+│   │   │   ├── DynamicArticles.tsx    # Artículos dinámicos de Firestore
+│   │   │   ├── BreakingNewsBanner.tsx # Banner de última hora (activo)
+│   │   │   ├── BreakingNewsModal.tsx  # Modal para ver noticia completa
+│   │   │   ├── CategoryModal.tsx      # Modal de categorías
+│   │   │   ├── ArticleModal.tsx       # Modal de artículo completo
+│   │   │   └── VisualEffects.tsx      # Efectos visuales gaming
 │   │   └── layout/
-│   │       ├── NewspaperHeader.tsx   # Header estilo periódico
-│   │       └── Footer.tsx            # Footer del sitio
+│   │       ├── NewspaperHeader.tsx    # Header estilo periódico
+│   │       └── Footer.tsx             # Footer del sitio
 │   ├── lib/
-│   │   ├── articles.ts              # Funciones para artículos de Firestore
-│   │   ├── firebase.ts              # Configuración Firebase cliente
-│   │   └── utils.ts                 # Utilidades generales
+│   │   ├── articles.ts               # Funciones para artículos de Firestore
+│   │   ├── firebase.ts               # Configuración Firebase cliente
+│   │   └── utils.ts                  # Utilidades generales
 │   └── app/
-│       ├── page.tsx                 # Página principal
-│       └── layout.tsx               # Layout base
-├── package.json                     # Dependencias y scripts
-├── tailwind.config.js              # Configuración Tailwind con tema gaming
-├── firebase.json                   # Configuración Firebase Hosting
-└── .firebaserc                     # Proyecto Firebase
+│       ├── page.tsx                  # Página principal
+│       ├── teletipos/page.tsx        # Página de archivo de noticias
+│       └── layout.tsx                # Layout base
+├── package.json                      # Dependencias y scripts
+├── tailwind.config.js               # Configuración Tailwind con tema gaming
+├── firebase.json                    # Configuración Firebase Hosting
+└── .firebaserc                      # Proyecto Firebase
 ```
 
 ---
 
 ## 🤖 Sistema de Generación de Artículos
 
+### **IMPORTANTE: Estrategia de Contenidos y No Duplicación**
+
+⚠️ **EVITAR DUPLICACIONES**: Este proyecto tiene configurados 3 workflows de GitHub Actions específicos. NO crear workflows adicionales con los mismos horarios.
+
+#### **Workflows Configurados (NO DUPLICAR)**
+
+1. **Daily Opinion Articles** - `.github/workflows/daily-opinion.yml`
+   - **Horario**: `0 9 * * *` (9:00 AM UTC diariamente)
+   - **Script**: `npm run generate-daily-opinion`
+   - **Propósito**: Artículos de opinión, tendencias y novedades
+
+2. **Weekly TOP5** - `.github/workflows/weekly-top5.yml`
+   - **Horario**: `0 10 * * 2` (Martes 10:00 AM UTC)
+   - **Script**: `npm run generate-weekly-top5`
+   - **Propósito**: Rankings TOP5 de juegos por categoría
+
+3. **Breaking News** - `.github/workflows/breaking-news.yml`
+   - **Horario**: `0 0,12 * * *` (Cada 12 horas: 00:00 y 12:00 UTC)
+   - **Script**: `npm run generate-breaking-news`
+   - **Propósito**: Noticias cortas de última hora
+
 ### **Flujo de Generación Automática**
 
-#### 1. **Trigger Diario** (9:00 AM UTC)
+#### 1. **Sistema de Artículos Diarios (9:00 AM UTC)**
 ```yaml
-# .github/workflows/generate-article.yml
+# .github/workflows/daily-opinion.yml
 schedule:
   - cron: '0 9 * * *'  # Diario a las 9:00 AM UTC
 ```
 
-#### 2. **Proceso de Generación**
+**Proceso**:
 1. **GitHub Actions se ejecuta**
 2. **Script instala dependencias**
 3. **Crea archivo de service account de Firebase**
-4. **Ejecuta generación de artículo**:
+4. **Ejecuta generación de artículo de opinión**:
    ```bash
-   node scripts/generate-article.js
+   node scripts/generate-daily-opinion.js
    ```
-5. **Gemini AI genera contenido único**
+5. **Gemini AI genera contenido de opinión/análisis**
 6. **Sistema obtiene imagen de Unsplash**
 7. **Artículo se guarda en Firestore**
-8. **Sitio se rebuilds automáticamente**
-9. **Deploy a Firebase Hosting**
 
-#### 3. **Tipos de Artículos Generados**
+#### 2. **Sistema de TOP5 Semanal (Martes 10:00 AM UTC)**
+```yaml
+# .github/workflows/weekly-top5.yml
+schedule:
+  - cron: '0 10 * * 2'  # Martes a las 10:00 AM UTC
+```
+
+**Proceso**:
+1. **GitHub Actions se ejecuta semanalmente**
+2. **Ejecuta generación de TOP5**:
+   ```bash
+   node scripts/generate-weekly-top5.js
+   ```
+3. **Gemini AI genera ranking de 5 juegos**
+4. **Artículo se guarda en Firestore con type: 'top5'**
+
+#### 3. **Sistema de Breaking News (Cada 12 horas)**
+```yaml
+# .github/workflows/breaking-news.yml
+schedule:
+  - cron: '0 0,12 * * *'  # Medianoche y mediodía UTC
+```
+
+**Proceso**:
+1. **GitHub Actions se ejecuta cada 12 horas**
+2. **Ejecuta generación de noticia corta**:
+   ```bash
+   node scripts/generate-breaking-news.js
+   ```
+3. **Busca tendencias actuales de gaming móvil**
+4. **Gemini AI genera noticia de 200-250 palabras**
+5. **Se guarda en colección `breaking_news` en Firestore**
+6. **Desactiva noticias anteriores (solo 1 activa a la vez)**
+
+#### 4. **Tipos de Artículos Generados**
+- **Opinión/Análisis**: Tendencias, monetización, nuevas tecnologías
+- **Guías**: Optimización, mejores prácticas, consejos
 - **TOP 5**: Listas de mejores juegos por categoría
-- **Análisis**: Tendencias y análisis profundos del gaming móvil
-- **Comparativas**: Comparaciones entre plataformas/juegos
-- **Guías**: Guías completas para gamers móviles
+- **Breaking News**: Noticias cortas de última hora (< 250 palabras)
 
 ### **Scripts Disponibles**
 
 ```bash
-# Generar artículo con Gemini AI (sistema principal)
-npm run generate-article
+# === Scripts de Generación de Contenido ===
+npm run generate-daily-opinion    # Artículo de opinión/análisis diario
+npm run generate-weekly-top5       # Ranking TOP5 semanal
+npm run generate-breaking-news     # Noticia de última hora
 
-# Generar artículo con templates (sistema de respaldo)
-npm run generate-article-template
+# === Scripts Legacy (mantener por compatibilidad) ===
+npm run generate-article           # Generador principal (uso manual)
+npm run generate-article-template  # Sistema de respaldo con templates
+npm run generate-article-ai        # Prueba solo generación IA
+npm run test-article               # Test del sistema de artículos
 
-# Probar solo la generación con IA
-npm run generate-article-ai
-
-# Probar sistema de artículos
-npm run test-article
-
-# Build y deploy
-npm run build
-firebase deploy --only hosting
+# === Build y Deploy ===
+npm run build                      # Build estático a /out
+firebase deploy --only hosting     # Deploy manual a Firebase
 ```
 
 ---
@@ -223,6 +285,27 @@ interface ArticleCardProps {
   status: "published"
 }
 ```
+
+### **Colección: `breaking_news`**
+
+#### Estructura de Documento:
+```javascript
+{
+  id: "auto_generated_firestore_id",
+  title: "Título de la noticia de última hora",
+  content: "Contenido corto (200-250 palabras)",
+  publishDate: "formato español: '30 de septiembre de 2025'",
+  type: "breaking",
+  active: true/false,  // Solo 1 noticia puede estar activa
+  createdAt: "Firebase Timestamp"
+}
+```
+
+**Comportamiento**:
+- Solo UNA noticia con `active: true` a la vez
+- Cada nueva noticia desactiva las anteriores
+- El banner muestra solo la noticia activa
+- Todas las noticias se archivan en la página de Teletipos
 
 ### **Funciones de Base de Datos** (`src/lib/articles.ts`)
 ```typescript

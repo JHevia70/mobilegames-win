@@ -1,0 +1,38 @@
+name: Generate Daily Opinion Article
+
+on:
+  schedule:
+    # Runs every day at 9:00 AM UTC (adjust timezone as needed)
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  generate-opinion:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Firebase Service Account file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json
+
+      - name: Generate daily opinion article
+        run: npm run generate-daily-opinion
+        env:
+          NODE_ENV: production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json

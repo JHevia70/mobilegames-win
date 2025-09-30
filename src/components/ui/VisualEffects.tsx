@@ -181,29 +181,6 @@ export const GamingOrb: React.FC<{
 };
 
 export const TreasureHunt: React.FC = () => {
-  const treasures = ['💎', '👑', '🏆', '🎁', '⭐', '🌟'];
-
-  return (
-    <div className="flex space-x-4 justify-center my-8">
-      {treasures.map((treasure, index) => (
-        <motion.div
-          key={index}
-          className="text-4xl cursor-pointer"
-          whileHover={{ scale: 1.3, rotate: 15 }}
-          whileTap={{ scale: 0.9 }}
-          animate={{
-            y: [0, -10, 0],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            delay: index * 0.2
-          }}
-        >
-          {treasure}
-        </motion.div>
-      ))}
-    </div>
-  );
+  // Disabled emoji component that was causing React rendering issues
+  return null;
 };

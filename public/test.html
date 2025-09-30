@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase - MobileGames.win</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .loading { color: #666; }
+        .error { background: #fee; padding: 15px; border: 1px solid red; border-radius: 5px; color: red; }
+        .success { background: #efe; padding: 15px; border: 1px solid green; border-radius: 5px; margin-bottom: 20px; }
+        .article {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .article h3 { margin: 0 0 10px 0; }
+        .article p { margin: 5px 0; font-size: 14px; }
+        .excerpt { font-size: 13px; color: #666; font-style: italic; }
+        pre { background: #f4f4f4; padding: 10px; overflow: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Firebase SDK</h1>
+    <div id="status">⏳ Cargando...</div>
+    <div id="content"></div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const statusDiv = document.getElementById('status');
+        const contentDiv = document.getElementById('content');
+
+        async function testFirebase() {
+            try {
+                console.log('🔍 Iniciando test...');
+                statusDiv.innerHTML = '⏳ Inicializando Firebase...';
+
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCywwj_27AOLJVq_hrhArfN--k1eStHOdA",
+                    authDomain: "mobilegames-win.firebaseapp.com",
+                    projectId: "mobilegames-win",
+                    storageBucket: "mobilegames-win.appspot.com",
+                    messagingSenderId: "349527092795",
+                    appId: "1:349527092795:web:ef3419e5e6922861d4b61e",
+                    measurementId: "G-JXSCYN9SFZ"
+                };
+
+                console.log('📦 Config:', firebaseConfig);
+
+                const app = initializeApp(firebaseConfig);
+                console.log('✅ Firebase initialized');
+                statusDiv.innerHTML = '⏳ Conectando a Firestore...';
+
+                const db = getFirestore(app);
+                console.log('✅ Firestore initialized');
+                statusDiv.innerHTML = '⏳ Obteniendo artículos...';
+
+                const articlesRef = collection(db, 'articles');
+                console.log('📡 Fetching articles...');
+
+                const snapshot = await getDocs(articlesRef);
+                console.log(`📥 Recibidos ${snapshot.size} documentos`);
+
+                const articles = [];
+                snapshot.forEach((doc) => {
+                    articles.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                console.log('✅ Artículos procesados:', articles.length);
+
+                // Mostrar resultados
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        <p style="font-weight: bold; color: green;">✅ Conexión exitosa!</p>
+                        <p><strong>Total de artículos:</strong> ${articles.length}</p>
+                    </div>
+                `;
+
+                if (articles.length > 0) {
+                    let html = '<h2>Artículos encontrados:</h2>';
+                    articles.forEach((article, index) => {
+                        html += `
+                            <div class="article">
+                                <h3>${index + 1}. ${article.title || 'Sin título'}</h3>
+                                <p>
+                                    <strong>ID:</strong> ${article.id}<br>
+                                    <strong>Categoría:</strong> ${article.category || 'N/A'}<br>
+                                    <strong>Autor:</strong> ${article.author || 'N/A'}<br>
+                                    <strong>Estado:</strong> ${article.status || 'N/A'}<br>
+                                    <strong>Fecha:</strong> ${article.publishDate || 'N/A'}
+                                </p>
+                                ${article.excerpt ? `<p class="excerpt">${article.excerpt.substring(0, 150)}...</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    contentDiv.innerHTML = html;
+
+                    // Mostrar primer artículo completo
+                    console.log('Primer artículo completo:', articles[0]);
+                } else {
+                    contentDiv.innerHTML = '<p style="color: orange;">⚠️ No se encontraron artículos</p>';
+                }
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        <p style="font-weight: bold;">❌ Error:</p>
+                        <pre>${error.message}\n\nStack:\n${error.stack}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // Ejecutar test
+        testFirebase();
+    </script>
+</body>
+</html>

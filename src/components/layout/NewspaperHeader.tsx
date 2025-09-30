@@ -10,29 +10,18 @@ import { cn } from '@/lib/utils';
 
 interface NewspaperHeaderProps {
   locale: string;
+  onCategoryClick?: (category: string) => void;
 }
 
-const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale }) => {
+const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const navigation = [
-    { name: 'Inicio', href: '/', current: true },
-    {
-      name: 'Reviews',
-      href: '/reviews',
-      dropdown: [
-        { name: 'RPG', href: '/reviews/rpg' },
-        { name: 'Estrategia', href: '/reviews/strategy' },
-        { name: 'Acción', href: '/reviews/action' },
-        { name: 'Puzzle', href: '/reviews/puzzle' },
-        { name: 'Deportes', href: '/reviews/sports' },
-      ]
-    },
-    { name: 'TOP 5', href: '/top5' },
-    { name: 'Noticias', href: '/news' },
-    { name: 'Guías', href: '/guides' },
-    { name: 'Análisis', href: '/analysis' },
+    { name: 'Inicio', href: '/' },
+    { name: 'Artículos', href: '/articulos' },
+    { name: 'Tops', href: '/tops' },
+    { name: 'Teletipos', href: '/teletipos' },
   ];
 
   const toggleMobileMenu = () => {
@@ -100,44 +89,15 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale }) => {
             <nav className="flex items-center space-x-8">
               {navigation.map((item) => (
                 <div key={item.name} className="relative">
-                  <button
-                    onClick={() => item.dropdown && handleDropdown(item.name)}
+                  <a
+                    href={item.href}
                     className={cn(
                       'flex items-center px-1 py-2 text-sm font-medium border-b-2 transition-colors',
-                      item.current
-                        ? 'text-gaming-red border-gaming-red'
-                        : 'text-gray-700 dark:text-gray-200 border-transparent hover:text-gaming-red hover:border-gaming-red/30'
+                      'text-gray-700 dark:text-gray-200 border-transparent hover:text-gaming-red hover:border-gaming-red/30'
                     )}
                   >
                     {item.name}
-                    {item.dropdown && (
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    )}
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  <AnimatePresence>
-                    {item.dropdown && activeDropdown === item.name && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute left-0 mt-2 w-48 rounded-lg bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50"
-                      >
-                        <div className="py-2">
-                          {item.dropdown.map((subItem) => (
-                            <a
-                              key={subItem.name}
-                              href={subItem.href}
-                              className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gaming-red transition-colors"
-                            >
-                              {subItem.name}
-                            </a>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  </a>
                 </div>
               ))}
             </nav>
@@ -185,32 +145,17 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale }) => {
             >
               <div className="py-4 space-y-1">
                 {navigation.map((item) => (
-                  <div key={item.name}>
-                    <a
-                      href={item.href}
-                      className={cn(
-                        'block px-3 py-3 text-base font-medium transition-colors',
-                        item.current
-                          ? 'text-gaming-red bg-red-50 dark:bg-red-900/20'
-                          : 'text-gray-700 dark:text-gray-200 hover:text-gaming-red hover:bg-gray-50 dark:hover:bg-gray-800'
-                      )}
-                    >
-                      {item.name}
-                    </a>
-                    {item.dropdown && (
-                      <div className="ml-4 space-y-1">
-                        {item.dropdown.map((subItem) => (
-                          <a
-                            key={subItem.name}
-                            href={subItem.href}
-                            className="block px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gaming-red"
-                          >
-                            {subItem.name}
-                          </a>
-                        ))}
-                      </div>
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      'w-full text-left block px-3 py-3 text-base font-medium transition-colors',
+                      'text-gray-700 dark:text-gray-200 hover:text-gaming-red hover:bg-gray-50 dark:hover:bg-gray-800'
                     )}
-                  </div>
+                  >
+                    {item.name}
+                  </a>
                 ))}
 
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">

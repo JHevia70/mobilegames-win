@@ -1,7 +1,21 @@
 'use client';
 
-import { db } from './firebase';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCywwj_27AOLJVq_hrhArfN--k1eStHOdA",
+  authDomain: "mobilegames-win.firebaseapp.com",
+  projectId: "mobilegames-win",
+  storageBucket: "mobilegames-win.appspot.com",
+  messagingSenderId: "349527092795",
+  appId: "1:349527092795:web:ef3419e5e6922861d4b61e",
+  measurementId: "G-JXSCYN9SFZ"
+};
+
+// Initialize Firebase
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app);
 
 export interface Article {
   id: string;
@@ -21,95 +35,73 @@ export interface Article {
   status: string;
 }
 
-// Get all published articles
-export async function getArticles(): Promise<Article[]> {
+// Fetch articles using Firebase SDK (same code as test.html that works)
+async function fetchArticlesSDK(): Promise<Article[]> {
   try {
-    const articlesQuery = query(
-      collection(db, 'articles'),
-      where('status', '==', 'published'),
-      orderBy('createdAt', 'desc')
-    );
+    console.log('🔍 Fetching articles with Firebase SDK...');
 
-    const querySnapshot = await getDocs(articlesQuery);
+    const articlesRef = collection(db, 'articles');
+    const snapshot = await getDocs(articlesRef);
+
+    console.log(`📥 Received ${snapshot.size} documents`);
+
     const articles: Article[] = [];
-
-    querySnapshot.forEach((doc) => {
-      articles.push({ id: doc.id, ...doc.data() } as Article);
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      articles.push({
+        id: doc.id,
+        title: data.title || 'Sin título',
+        content: data.content || 'Sin contenido',
+        excerpt: data.excerpt || 'Sin descripción',
+        image: data.image || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=400&fit=crop',
+        category: data.category || 'General',
+        author: data.author || 'Redacción',
+        publishDate: data.publishDate || 'Fecha desconocida',
+        readTime: data.readTime || 5,
+        rating: data.rating || 4.0,
+        slug: data.slug || `article-${doc.id}`,
+        type: data.type || 'article',
+        status: data.status || 'published',
+        featured: data.featured || false,
+        createdAt: data.createdAt,
+      } as Article);
     });
 
-    return articles;
+    // Filter published articles
+    const publishedArticles = articles.filter(a => a.status === 'published');
+
+    console.log(`✅ Firebase SDK returned ${publishedArticles.length} published articles`);
+    return publishedArticles;
+
   } catch (error) {
-    console.error('Error fetching articles:', error);
-    return [];
+    console.error('❌ Firebase SDK error:', error);
+    throw error;
   }
+}
+
+// Get all published articles
+export async function getArticles(): Promise<Article[]> {
+  return fetchArticlesSDK();
 }
 
 // Get featured articles
 export async function getFeaturedArticles(): Promise<Article[]> {
-  try {
-    const articlesQuery = query(
-      collection(db, 'articles'),
-      where('status', '==', 'published'),
-      where('featured', '==', true),
-      orderBy('createdAt', 'desc'),
-      limit(5)
-    );
-
-    const querySnapshot = await getDocs(articlesQuery);
-    const articles: Article[] = [];
-
-    querySnapshot.forEach((doc) => {
-      articles.push({ id: doc.id, ...doc.data() } as Article);
-    });
-
-    return articles;
-  } catch (error) {
-    console.error('Error fetching featured articles:', error);
-    return [];
-  }
+  const articles = await fetchArticlesSDK();
+  return articles.filter(a => a.featured).slice(0, 5);
 }
 
 // Get latest articles
 export async function getLatestArticles(count: number = 10): Promise<Article[]> {
-  try {
-    const articlesQuery = query(
-      collection(db, 'articles'),
-      where('status', '==', 'published'),
-      orderBy('createdAt', 'desc'),
-      limit(count)
-    );
-
-    const querySnapshot = await getDocs(articlesQuery);
-    const articles: Article[] = [];
-
-    querySnapshot.forEach((doc) => {
-      articles.push({ id: doc.id, ...doc.data() } as Article);
-    });
-
-    return articles;
-  } catch (error) {
-    console.error('Error fetching latest articles:', error);
-    return [];
-  }
+  const articles = await fetchArticlesSDK();
+  return articles.slice(0, count);
 }
 
 // Get article by slug
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   try {
-    const articlesQuery = query(
-      collection(db, 'articles'),
-      where('slug', '==', slug),
-      where('status', '==', 'published')
-    );
-
-    const querySnapshot = await getDocs(articlesQuery);
-
-    if (querySnapshot.empty) {
-      return null;
-    }
-
-    const doc = querySnapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Article;
+    const articles = await fetchArticlesSDK();
+    const article = articles.find(a => a.slug.toLowerCase() === slug.toLowerCase());
+    return article || null;
   } catch (error) {
     console.error('Error fetching article by slug:', error);
     return null;
@@ -119,21 +111,11 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 // Get articles by category
 export async function getArticlesByCategory(category: string): Promise<Article[]> {
   try {
-    const articlesQuery = query(
-      collection(db, 'articles'),
-      where('status', '==', 'published'),
-      where('category', '==', category),
-      orderBy('createdAt', 'desc')
+    const articles = await fetchArticlesSDK();
+    return articles.filter(a =>
+      a.category.toLowerCase().includes(category.toLowerCase()) ||
+      category.toLowerCase().includes(a.category.toLowerCase())
     );
-
-    const querySnapshot = await getDocs(articlesQuery);
-    const articles: Article[] = [];
-
-    querySnapshot.forEach((doc) => {
-      articles.push({ id: doc.id, ...doc.data() } as Article);
-    });
-
-    return articles;
   } catch (error) {
     console.error('Error fetching articles by category:', error);
     return [];

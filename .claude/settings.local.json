@@ -22,7 +22,22 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(npm run generate-article:*)",
-      "Bash(npm run generate-article-ai:*)"
+      "Bash(npm run generate-article-ai:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(fuser:*)",
+      "Bash(taskkill:*)",
+      "Bash(firebase experiments:enable:*)",
+      "WebFetch(domain:mobilegames-win.web.app)",
+      "Bash(firebase firestore:rules:get:*)",
+      "Bash(cat:*)",
+      "Bash(copy publictest.html outtest.html)",
+      "Bash(npm run generate-article-pages:*)",
+      "Bash(npm run generate-daily-opinion:*)",
+      "Bash(npm run generate-weekly-top5:*)",
+      "Bash(npm run generate-breaking-news:*)"
     ],
     "deny": [],
     "ask": []

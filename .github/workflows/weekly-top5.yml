@@ -1,0 +1,38 @@
+name: Generate Weekly TOP 5 Article
+
+on:
+  schedule:
+    # Runs every Tuesday at 10:00 AM UTC
+    - cron: '0 10 * * 2'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  generate-top5:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Firebase Service Account file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json
+
+      - name: Generate weekly TOP 5 article
+        run: npm run generate-weekly-top5
+        env:
+          NODE_ENV: production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json

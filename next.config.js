@@ -1,13 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  trailingSlash: true,
   images: {
     unoptimized: true,
-    domains: ['firebasestorage.googleapis.com', 'play-lh.googleusercontent.com', 'is1-ssl.mzstatic.com'],
   },
+  // Remove removeConsole to see all logs in production
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // removeConsole: process.env.NODE_ENV === 'production',
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['firebase-admin'],
   },
 };
 

@@ -1,4 +1,8 @@
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
     "public": "out",
     "ignore": [
@@ -8,9 +12,18 @@
     ],
     "rewrites": [
       {
+        "source": "/article",
+        "destination": "/article.html"
+      },
+      {
+        "source": "/test",
+        "destination": "/test.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],
+    "cleanUrls": true
   }
 }

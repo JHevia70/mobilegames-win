@@ -1,0 +1,37 @@
+name: Generate Breaking News
+
+on:
+  schedule:
+    # Runs every 12 hours (00:00 and 12:00 UTC)
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  generate-breaking-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Firebase Service Account file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json
+
+      - name: Generate breaking news
+        run: npm run generate-breaking-news
+        env:
+          NODE_ENV: production
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -f mobilegames-win-firebase-adminsdk-fbsvc-e75d0dfbc9.json
