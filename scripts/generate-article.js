@@ -1,4 +1,8 @@
-require('dotenv').config({ path: '.env.local' });
+// Load dotenv only if not in production (GitHub Actions provides env vars directly)
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: '.env.local' });
+}
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { HfInference } = require('@huggingface/inference');
 const admin = require('firebase-admin');
