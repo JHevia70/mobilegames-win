@@ -700,8 +700,18 @@ async function generateAndPublishArticle() {
   try {
     console.log('🤖 Generating new article...');
 
-    // Select random article type
-    const articleType = articleTypes[Math.floor(Math.random() * articleTypes.length)];
+    // Select article type (forced or random)
+    let articleType;
+    if (process.env.FORCE_ARTICLE_TYPE) {
+      console.log(`🎯 Forcing article type: ${process.env.FORCE_ARTICLE_TYPE}`);
+      articleType = articleTypes.find(t => t.type === process.env.FORCE_ARTICLE_TYPE);
+      if (!articleType) {
+        console.warn(`⚠️ Article type "${process.env.FORCE_ARTICLE_TYPE}" not found, using random`);
+        articleType = articleTypes[Math.floor(Math.random() * articleTypes.length)];
+      }
+    } else {
+      articleType = articleTypes[Math.floor(Math.random() * articleTypes.length)];
+    }
 
     // Generate title based on type
     let title = '';

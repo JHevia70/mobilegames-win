@@ -1,29 +1,7 @@
-const { generateAndPublishArticle } = require('./generate-article');
+// Set environment variable to force TOP5 generation
+process.env.FORCE_ARTICLE_TYPE = 'top5';
 
-// Force article type to be TOP5
-const top5ArticleTypes = [
-  {
-    type: 'top5',
-    template: 'TOP 5 Mejores Juegos {category} para {platform} {month} {year}',
-    categories: [
-      'RPG',
-      'Estrategia',
-      'Acción',
-      'Puzzle',
-      'Deportes',
-      'Simulación',
-      'Aventura',
-      'Shooter',
-      'Carreras',
-      'Plataformas',
-      'Battle Royale',
-      'MOBA',
-      'Card Games',
-      'Roguelike'
-    ],
-    platforms: ['Android', 'iOS', 'Mobile']
-  }
-];
+const { generateAndPublishArticle } = require('./generate-article');
 
 async function generateWeeklyTop5() {
   console.log('🏆 Generating weekly TOP 5 article...');
@@ -31,25 +9,7 @@ async function generateWeeklyTop5() {
   console.log(`📅 Current day: ${new Date().toLocaleDateString('es-ES', { weekday: 'long' })}`);
 
   try {
-    // Temporarily override article types in the module
-    const generateModule = require('./generate-article');
-    const originalTypes = generateModule.articleTypes;
-
-    // Monkey-patch for this execution
-    Object.defineProperty(generateModule, 'articleTypes', {
-      value: top5ArticleTypes,
-      writable: true,
-      configurable: true
-    });
-
     const article = await generateAndPublishArticle();
-
-    // Restore original
-    Object.defineProperty(generateModule, 'articleTypes', {
-      value: originalTypes,
-      writable: true,
-      configurable: true
-    });
 
     console.log('✅ Weekly TOP 5 article published successfully!');
     console.log(`📖 Title: ${article.title}`);
