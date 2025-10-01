@@ -93,7 +93,15 @@ export async function getFeaturedArticles(): Promise<Article[]> {
 // Get latest articles
 export async function getLatestArticles(count: number = 10): Promise<Article[]> {
   const articles = await fetchArticlesSDK();
-  return articles.slice(0, count);
+
+  // Sort by createdAt timestamp (most recent first)
+  const sortedArticles = articles.sort((a, b) => {
+    const timeA = a.createdAt?.seconds || 0;
+    const timeB = b.createdAt?.seconds || 0;
+    return timeB - timeA; // Descending order (newest first)
+  });
+
+  return sortedArticles.slice(0, count);
 }
 
 // Get article by slug

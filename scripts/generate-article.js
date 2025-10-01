@@ -1,13 +1,158 @@
+require('dotenv').config({ path: '.env.local' });
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { HfInference } = require('@huggingface/inference');
 const admin = require('firebase-admin');
 const { createApi } = require('unsplash-js');
+const { createClient } = require('pexels');
+const gplay = require('google-play-scraper').default || require('google-play-scraper');
 const fs = require('fs');
 
 // Initialize services
+// Use HuggingFace with Qwen as fallback when Gemini quota is exceeded
+const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE === 'true';
+const HUGGINGFACE_TOKEN = process.env.HUGGINGFACE_TOKEN;
+
+console.log(`🤖 AI Provider: ${USE_HUGGINGFACE ? 'HuggingFace (Qwen 2.5 7B)' : 'Gemini'}`);
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const hf = HUGGINGFACE_TOKEN ? new HfInference(HUGGINGFACE_TOKEN) : null;
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_ACCESS_KEY,
 });
+const pexels = createClient('l3oFCkkLv3MWsfAMDKKaimq8mqVindRDg6JzpzWM6XY48ywkCQc5pM7P');
+
+// Cache for game data
+const gameCache = new Map();
+
+// HuggingFace API helper function using Qwen 2.5
+async function callHuggingFace(prompt, systemPrompt = '') {
+  if (!hf) {
+    throw new Error('HuggingFace client not initialized. Set HUGGINGFACE_TOKEN environment variable.');
+  }
+
+  const fullPrompt = systemPrompt
+    ? `${systemPrompt}\n\n${prompt}`
+    : prompt;
+
+  try {
+    // Using Qwen 2.5 7B Instruct model (smaller, faster, free)
+    const response = await hf.chatCompletion({
+      model: 'Qwen/Qwen2.5-7B-Instruct',
+      messages: [
+        ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000,
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('   ❌ HuggingFace API error:', error.message);
+    throw error;
+  }
+}
+
+// Search for a game in Google Play Store
+async function searchGameInPlayStore(gameName) {
+  try {
+    console.log(`   🔍 Searching Play Store for: "${gameName}"`);
+
+    // Check cache first
+    if (gameCache.has(gameName.toLowerCase())) {
+      console.log(`   ✓ Found in cache`);
+      return gameCache.get(gameName.toLowerCase());
+    }
+
+    const results = await gplay.search({
+      term: gameName,
+      num: 3,
+      lang: 'es',
+      country: 'es'
+    });
+
+    if (results.length > 0) {
+      const game = results[0];
+      console.log(`   ✓ Found: ${game.title} (${game.appId})`);
+
+      // Get detailed info
+      const details = await gplay.app({ appId: game.appId, lang: 'es', country: 'es' });
+
+      const gameData = {
+        title: details.title,
+        appId: details.appId,
+        icon: details.icon,
+        screenshots: details.screenshots || [],
+        score: details.score,
+        scoreText: details.scoreText,
+        ratings: details.ratings,
+        url: details.url,
+        genre: details.genre,
+        developer: details.developer,
+        developerUrl: details.developerWebsite,
+        description: details.summary,
+        released: details.released,
+        updated: details.updated,
+        version: details.version,
+        minInstalls: details.minInstalls,
+        maxInstalls: details.maxInstalls,
+        price: details.price,
+        free: details.free,
+        size: details.size,
+        androidVersion: details.androidVersion,
+        contentRating: details.contentRating
+      };
+
+      // Cache it
+      gameCache.set(gameName.toLowerCase(), gameData);
+
+      return gameData;
+    }
+
+    console.log(`   ⚠️ Game not found in Play Store`);
+    return null;
+  } catch (error) {
+    console.error(`   ❌ Error searching Play Store:`, error.message);
+    return null;
+  }
+}
+
+// Get top games by category
+async function getTopGamesByCategory(category, num = 10) {
+  try {
+    console.log(`📱 Getting top ${num} ${category} games from Play Store...`);
+
+    const categoryMap = {
+      'rpg': gplay.category.ROLE_PLAYING,
+      'estrategia': gplay.category.STRATEGY,
+      'acción': gplay.category.ACTION,
+      'action': gplay.category.ACTION,
+      'puzzle': gplay.category.PUZZLE,
+      'deportes': gplay.category.SPORTS,
+      'sports': gplay.category.SPORTS,
+      'simulación': gplay.category.SIMULATION,
+      'simulation': gplay.category.SIMULATION,
+      'aventura': gplay.category.ADVENTURE,
+      'adventure': gplay.category.ADVENTURE
+    };
+
+    const playCategory = categoryMap[category.toLowerCase()] || gplay.category.GAME;
+
+    const results = await gplay.list({
+      category: playCategory,
+      collection: gplay.collection.TOP_FREE,
+      num: num,
+      lang: 'es',
+      country: 'es'
+    });
+
+    console.log(`✓ Found ${results.length} games`);
+    return results;
+  } catch (error) {
+    console.error(`❌ Error getting top games:`, error.message);
+    return [];
+  }
+}
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -50,15 +195,93 @@ const articleTypes = [
   }
 ];
 
+// Discover trending topics in mobile gaming
+async function discoverTrendingTopics() {
+  const discoveryPrompt = `Analiza las tendencias actuales en gaming móvil y proporciona:
+
+1. Los 3 temas MÁS TRENDING en juegos móviles en este momento (basado en búsquedas, discusiones, lanzamientos recientes)
+2. Los 3 juegos móviles más populares/discutidos del momento
+3. Controversias o debates actuales en la comunidad de gaming móvil
+4. Novedades tecnológicas o mecánicas de juego que están ganando popularidad
+
+Formato de respuesta:
+TRENDING_TOPICS: [tema1, tema2, tema3]
+HOT_GAMES: [juego1, juego2, juego3]
+DEBATES: [debate1, debate2]
+TECH: [novedad1, novedad2]
+
+Sé específico y actual. Solo menciona cosas que estén realmente siendo tendencia AHORA.`;
+
+  try {
+    console.log('🔥 Discovering trending topics in mobile gaming...');
+
+    let response;
+    if (USE_HUGGINGFACE) {
+      console.log('   Using HuggingFace (Qwen 2.5 7B)...');
+      response = await callHuggingFace(discoveryPrompt);
+    } else {
+      const model = genAI.getGenerativeModel({
+        model: 'models/gemini-2.0-flash-exp',
+        tools: [{
+          googleSearch: {}
+        }],
+      });
+      const result = await model.generateContent(discoveryPrompt);
+      response = await result.response.text();
+    }
+
+    console.log('📊 Trending topics discovered');
+    return response;
+  } catch (error) {
+    console.error('⚠️  Error discovering trends:', error.message);
+    return null;
+  }
+}
+
+// Extract a random trending topic from discovery response
+function extractTrendingTopic(trendingData) {
+  if (!trendingData) return null;
+
+  try {
+    // Extract topics from different sections
+    const topics = [];
+
+    // Extract TRENDING_TOPICS
+    const trendingMatch = trendingData.match(/TRENDING_TOPICS:\s*\[([^\]]+)\]/i);
+    if (trendingMatch) {
+      const items = trendingMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+      topics.push(...items);
+    }
+
+    // Extract DEBATES
+    const debatesMatch = trendingData.match(/DEBATES:\s*\[([^\]]+)\]/i);
+    if (debatesMatch) {
+      const items = debatesMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+      topics.push(...items);
+    }
+
+    // Extract TECH
+    const techMatch = trendingData.match(/TECH:\s*\[([^\]]+)\]/i);
+    if (techMatch) {
+      const items = techMatch[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+      topics.push(...items);
+    }
+
+    if (topics.length > 0) {
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      console.log(`   ✅ Selected trending topic: "${randomTopic}"`);
+      return randomTopic;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('   ⚠️  Error extracting topic:', error.message);
+    return null;
+  }
+}
+
 // Search web for current gaming trends
 async function searchGamingTrends(topic) {
-  const model = genAI.getGenerativeModel({
-    model: 'models/gemini-2.0-flash-exp',
-    tools: [{
-      googleSearch: {}
-    }],
-  });
-
   const searchPrompt = `Busca información actualizada sobre "${topic}" en juegos móviles.
 Necesito:
 - Juegos móviles reales y populares relacionados con ${topic}
@@ -70,28 +293,29 @@ Proporciona información verificable y actual.`;
 
   try {
     console.log(`🔍 Searching web for: ${topic}`);
-    const result = await model.generateContent(searchPrompt);
-    const response = await result.response;
-    return response.text();
+
+    if (USE_HUGGINGFACE) {
+      console.log('   Using HuggingFace (Qwen 2.5 7B)...');
+      return await callHuggingFace(searchPrompt);
+    } else {
+      const model = genAI.getGenerativeModel({
+        model: 'models/gemini-2.0-flash-exp',
+        tools: [{
+          googleSearch: {}
+        }],
+      });
+      const result = await model.generateContent(searchPrompt);
+      const response = await result.response;
+      return response.text();
+    }
   } catch (error) {
     console.error('Error searching trends:', error);
     return '';
   }
 }
 
-// Generate article content with Gemini
+// Generate article content with Gemini or OpenRouter
 async function generateArticleContent(title, type, category = '') {
-  const model = genAI.getGenerativeModel({
-    model: 'models/gemini-2.0-flash-exp',
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.95,
-      topK: 64,
-      maxOutputTokens: 8192,
-      responseMimeType: "text/plain",
-    }
-  });
-
   const searchTerm = category || type;
 
   // First, search for current trends and real games
@@ -118,22 +342,37 @@ REQUISITOS OBLIGATORIOS:
 ESTRUCTURA OBLIGATORIA:
 
 ## Introducción
-Introducción atractiva y contextualizada (250-300 palabras)
+Introducción atractiva y contextualizada (200-250 palabras)
 
-## [Apartado 1 - título específico relacionado con el tema]
-Primer punto principal desarrollado completamente (350-400 palabras)
-[IMG_PLACEHOLDER_1: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+## [Nombre del Juego 1 o apartado específico]
+[IMG_PLACEHOLDER_1: nombre exacto del juego o concepto]
 
-## [Apartado 2 - título específico relacionado con el tema]
-Segundo punto principal desarrollado completamente (350-400 palabras)
-[IMG_PLACEHOLDER_2: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+Análisis detallado de este juego o tema (300-350 palabras):
+- Descripción y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
 
-## [Apartado 3 - título específico relacionado con el tema]
-Tercer punto principal desarrollado completamente (350-400 palabras)
-[IMG_PLACEHOLDER_3: nombre del juego específico o concepto visual exacto mencionado en esta sección]
+## [Nombre del Juego 2 o apartado específico]
+[IMG_PLACEHOLDER_2: nombre exacto del juego o concepto]
+
+Análisis detallado de este juego o tema (300-350 palabras):
+- Descripción y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
+
+## [Nombre del Juego 3 o apartado específico]
+[IMG_PLACEHOLDER_3: nombre exacto del juego o concepto]
+
+Análisis detallado de este juego o tema (300-350 palabras):
+- Descripción y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
 
 ## Conclusión
-Conclusión completa con recomendaciones claras y llamado a la acción (250-300 palabras)
+Conclusión completa con recomendaciones claras (200-250 palabras)
 
 CRÍTICO:
 - Completa TODAS las secciones hasta el final
@@ -154,9 +393,24 @@ IMÁGENES - MUY IMPORTANTE:
 `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    if (USE_HUGGINGFACE) {
+      console.log('   Using HuggingFace (Qwen 2.5 7B) for article generation...');
+      return await callHuggingFace(prompt, 'You are an expert gaming journalist specializing in mobile games. Write detailed, accurate, and engaging articles in Spanish.');
+    } else {
+      const model = genAI.getGenerativeModel({
+        model: 'models/gemini-2.0-flash-exp',
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 64,
+          maxOutputTokens: 8192,
+          responseMimeType: "text/plain",
+        }
+      });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    }
   } catch (error) {
     console.error('Error generating content:', error);
     throw error;
@@ -166,36 +420,78 @@ IMÁGENES - MUY IMPORTANTE:
 // Get relevant image from Unsplash
 async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
   try {
-    const dimensions = size === 'hero'
-      ? 'w=1200&h=600&fit=crop'
-      : 'w=800&h=500&fit=crop';
+    const page = pageOverride || Math.floor(Math.random() * 3) + 1;
 
-    // Use pageOverride if provided, otherwise random
-    const page = pageOverride || Math.floor(Math.random() * 5) + 1;
+    // Simplify search term
+    let simplifiedTerm = searchTerm.toLowerCase();
 
-    const result = await unsplash.search.getPhotos({
-      query: `${searchTerm} mobile gaming`,
-      page: page,
-      perPage: 10, // Get more results to pick from
-      orientation: 'landscape'
-    });
+    // Extract key gaming concepts
+    const gameGenres = ['rpg', 'strategy', 'action', 'puzzle', 'racing', 'shooter', 'moba', 'fps'];
+    const foundGenre = gameGenres.find(genre => simplifiedTerm.includes(genre));
 
-    if (result.response && result.response.results.length > 0) {
-      // Pick a random photo from the results for more variety
-      const randomIndex = Math.floor(Math.random() * result.response.results.length);
-      const photo = result.response.results[randomIndex];
-      return `${photo.urls.regular}?${dimensions}&sig=${Date.now()}`;
+    // Search strategies - broader terms for better results
+    const searchStrategies = [
+      foundGenre ? `${foundGenre} mobile game` : null,
+      'mobile gaming',
+      'smartphone gaming',
+      'video game controller',
+      'gaming phone',
+      'mobile esports'
+    ].filter(Boolean);
+
+    for (let strategy of searchStrategies) {
+      console.log(`   🔍 Searching Unsplash: "${strategy}" (page ${page})`);
+
+      try {
+        const result = await unsplash.search.getPhotos({
+          query: strategy,
+          page: page,
+          perPage: 30,
+          orientation: 'landscape'
+        });
+
+        if (result.response && result.response.results && result.response.results.length > 0) {
+          // Pick a random photo
+          const randomIndex = Math.floor(Math.random() * result.response.results.length);
+          const photo = result.response.results[randomIndex];
+
+          const imageUrl = size === 'hero'
+            ? photo.urls.regular
+            : photo.urls.small;
+
+          console.log(`   ✓ Found image: ${photo.id} (${randomIndex + 1}/${result.response.results.length}) from "${strategy}"`);
+          return imageUrl;
+        }
+      } catch (err) {
+        console.log(`   ⚠️ Failed to search "${strategy}": ${err.message}`);
+        continue;
+      }
     }
 
-    // Fallback image
-    return `https://images.unsplash.com/photo-1511512578047-dfb367046420?${dimensions}`;
+    // If all fails, use a variety of curated gaming images from Unsplash
+    console.log(`   🎲 Using random curated gaming image`);
+    const curatedImages = [
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200',
+      'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200',
+      'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200',
+      'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=1200',
+      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=1200',
+      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=1200'
+    ];
+
+    const randomImage = curatedImages[Math.floor(Math.random() * curatedImages.length)];
+    return randomImage;
+
   } catch (error) {
-    console.error('Error fetching image:', error);
-    return `https://images.unsplash.com/photo-1511512578047-dfb367046420?${dimensions}`;
+    console.error('   ❌ Error fetching image:', error.message);
+    // Ultimate fallback
+    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200';
   }
 }
 
-// Process content and replace image placeholders
+// Process content and replace image placeholders with game info cards
 async function processContentImages(content, searchTerm) {
   console.log('🖼️  Processing article images...');
 
@@ -215,21 +511,91 @@ async function processContentImages(content, searchTerm) {
   let processedContent = content;
   for (let i = 0; i < replacements.length; i++) {
     const { fullMatch, index, description } = replacements[i];
-    // Use the description directly as it should contain game names or specific topics
-    const specificSearchTerm = description.includes('mobile game')
-      ? description
-      : `${description} mobile game gameplay`;
 
-    // Add page parameter to get different results for each image
-    const imageUrl = await getArticleImage(specificSearchTerm, 'inline', i + 1);
-    const imageHtml = `\n\n<img src="${imageUrl}" alt="${description}" class="article-image" />\n\n`;
+    console.log(`\n📸 Processing image ${i + 1}/${replacements.length}:`);
+    console.log(`   Description: "${description}"`);
+
+    // Extract potential game name from description
+    let gameName = description.trim();
+    gameName = gameName
+      .replace(/\s+(mobile\s+game|gameplay|screenshot|graphics|showing|showcasing|in-game).*$/i, '')
+      .trim();
+
+    console.log(`   Game name: "${gameName}"`);
+
+    let imageHtml = '';
+    let gameData = null;
+
+    // Try to find game in Play Store
+    if (gameName) {
+      gameData = await searchGameInPlayStore(gameName);
+
+      if (gameData && gameData.screenshots.length > 0) {
+        // Use a random screenshot from the game
+        const randomScreenshot = gameData.screenshots[Math.floor(Math.random() * Math.min(gameData.screenshots.length, 5))];
+
+        // Format dates
+        const formatDate = (dateStr) => {
+          if (!dateStr) return 'N/A';
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        };
+
+        // Format installs
+        const formatInstalls = (minInstalls) => {
+          if (!minInstalls) return 'N/A';
+          if (minInstalls >= 1000000000) return `${(minInstalls / 1000000000).toFixed(1)}B+`;
+          if (minInstalls >= 1000000) return `${(minInstalls / 1000000).toFixed(0)}M+`;
+          if (minInstalls >= 1000) return `${(minInstalls / 1000).toFixed(0)}K+`;
+          return `${minInstalls}+`;
+        };
+
+        // Create beautiful game card
+        imageHtml = `
+
+<div class="game-card-pro" style="border: 3px solid #374151; border-radius: 16px; padding: 24px; margin: 40px 0; background: #1f2937; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+
+  <div class="game-visual-section" style="margin-bottom: 16px;">
+    <div class="game-screenshot-frame" style="width: 100%; border-radius: 12px; overflow: hidden; border: 3px solid #374151; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 12px; background: #111827;">
+      <img src="${randomScreenshot}" alt="${description}" style="max-height: 280px !important; width: 100% !important; height: auto !important; object-fit: contain !important; display: block; border-radius: 8px;" />
+    </div>
+  </div>
+
+  <div class="game-caption" style="font-size: 13px; color: #9ca3af; font-style: italic; line-height: 1.6; margin-bottom: 8px; padding: 0 4px;">
+    <strong style="color: #f3f4f6; font-size: 14px;">${gameData.title}</strong> · ${gameData.developer} · ${gameData.genre || 'Juego móvil'} · ⭐ ${gameData.score ? gameData.score.toFixed(1) : 'N/A'}/5 · Descargas: ${formatInstalls(gameData.minInstalls)} · ${gameData.free ? 'Gratis' : gameData.price}
+  </div>
+
+  <div class="game-dates" style="font-size: 12px; color: #6b7280; margin-bottom: 12px; padding: 0 4px;">
+    Lanzamiento: ${formatDate(gameData.released)} · Última actualización: ${formatDate(gameData.updated)}
+  </div>
+
+  <a href="${gameData.url}" target="_blank" rel="noopener" class="google-play-button" style="display: inline-block; margin-bottom: 0; transition: all 0.3s;">
+    <img src="/assets/images/googlesc.png" alt="Get it on Google Play" class="play-badge" style="height: 35px !important; width: auto !important; max-width: 130px !important; display: block;" />
+  </a>
+</div>
+
+`;
+
+        console.log(`   ✓ Used Play Store screenshot for ${gameData.title}`);
+      }
+    }
+
+    // Fallback to generic gaming images if Play Store fails
+    if (!imageHtml) {
+      console.log(`   ⚠️ Play Store not available, using generic image`);
+      const pageNumber = (i + 1) + Math.floor(Math.random() * 3);
+      const imageUrl = await getArticleImage(gameName || description, 'inline', pageNumber);
+      imageHtml = `\n\n<img src="${imageUrl}" alt="${description}" class="article-image" />\n\n`;
+    }
+
     processedContent = processedContent.replace(fullMatch, imageHtml);
-    console.log(`✓ Replaced placeholder ${index}: "${description}" (page ${i + 1})`);
+    console.log(`   ✅ Replaced placeholder ${index}\n`);
 
-    // Add delay to avoid rate limiting and get different images
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Add delay to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1500));
   }
 
+  console.log('✅ All images processed\n');
   return processedContent;
 }
 
@@ -288,8 +654,16 @@ async function generateAndPublishArticle() {
     const month = currentDate.toLocaleDateString('es-ES', { month: 'long' });
     const year = currentDate.getFullYear();
 
+    // For non-TOP5 articles, try to find trending topics first
+    let trendingTopic = null;
+    if (articleType.type !== 'top5') {
+      const trendingData = await discoverTrendingTopics();
+      trendingTopic = extractTrendingTopic(trendingData);
+    }
+
     switch (articleType.type) {
       case 'top5':
+        // TOP5 always uses predefined categories (can rotate monthly)
         const category = articleType.categories[Math.floor(Math.random() * articleType.categories.length)];
         const platform = articleType.platforms[Math.floor(Math.random() * articleType.platforms.length)];
         title = articleType.template
@@ -301,25 +675,47 @@ async function generateAndPublishArticle() {
         break;
 
       case 'analysis':
-        const topic = articleType.topics[Math.floor(Math.random() * articleType.topics.length)];
+        // Try trending topic first, fallback to predefined
+        const topic = trendingTopic || articleType.topics[Math.floor(Math.random() * articleType.topics.length)];
         title = articleType.template
           .replace('{topic}', topic)
           .replace('{year}', year);
         searchTerm = topic;
+        if (trendingTopic) {
+          console.log('   🔥 Using TRENDING topic for analysis');
+        } else {
+          console.log('   📋 Using predefined topic (no trending found)');
+        }
         break;
 
       case 'comparison':
-        const comparison = articleType.comparisons[Math.floor(Math.random() * articleType.comparisons.length)];
-        title = articleType.template
-          .replace('{topic1}', comparison[0])
-          .replace('{topic2}', comparison[1]);
-        searchTerm = comparison[0];
+        // If trending topic exists, create comparison with it
+        if (trendingTopic) {
+          console.log('   🔥 Using TRENDING topic for comparison');
+          // Try to create a comparison based on trending topic
+          const predefinedComparison = articleType.comparisons[Math.floor(Math.random() * articleType.comparisons.length)];
+          title = `Comparativa: ${trendingTopic} en ${predefinedComparison[0]} vs ${predefinedComparison[1]}`;
+          searchTerm = trendingTopic;
+        } else {
+          console.log('   📋 Using predefined comparison (no trending found)');
+          const comparison = articleType.comparisons[Math.floor(Math.random() * articleType.comparisons.length)];
+          title = articleType.template
+            .replace('{topic1}', comparison[0])
+            .replace('{topic2}', comparison[1]);
+          searchTerm = comparison[0];
+        }
         break;
 
       case 'guide':
-        const guideTopic = articleType.topics[Math.floor(Math.random() * articleType.topics.length)];
+        // Try trending topic first, fallback to predefined
+        const guideTopic = trendingTopic || articleType.topics[Math.floor(Math.random() * articleType.topics.length)];
         title = articleType.template.replace('{topic}', guideTopic);
         searchTerm = guideTopic;
+        if (trendingTopic) {
+          console.log('   🔥 Using TRENDING topic for guide');
+        } else {
+          console.log('   📋 Using predefined topic (no trending found)');
+        }
         break;
     }
 
