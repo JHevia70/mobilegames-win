@@ -30,6 +30,8 @@ jobs:
         run: npm run generate-weekly-top5
         env:
           NODE_ENV: production
+          USE_HUGGINGFACE: true
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 

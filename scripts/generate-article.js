@@ -190,7 +190,13 @@ const articleTypes = [
   },
   {
     type: 'guide',
-    template: 'Guía Completa: {topic} para Gamers Móviles',
+    templates: [
+      '{topic} para Gamers Móviles: Todo lo que Necesitas Saber',
+      'Domina {topic} en Juegos Móviles',
+      '{topic}: La Guía Definitiva para Móviles',
+      'Cómo Mejorar en {topic} - Guía Práctica',
+      '{topic} en Gaming Móvil: Consejos y Trucos'
+    ],
     topics: ['Optimizar Batería', 'Mejores Accesorios', 'Configuración Gráfica', 'Trucos y Consejos']
   }
 ];
@@ -321,6 +327,89 @@ async function generateArticleContent(title, type, category = '') {
   // First, search for current trends and real games
   const trendsInfo = await searchGamingTrends(searchTerm);
 
+  // Different content structure based on article type
+  const isTop5 = type === 'top5';
+
+  const structurePrompt = isTop5 ? `
+ESTRUCTURA OBLIGATORIA (TOP 5 - Análisis detallado de cada juego):
+
+## Introducción
+Introducción atractiva y contextualizada (200-250 palabras)
+
+## 1. [Nombre del Juego 1]
+[IMG_PLACEHOLDER_1: nombre exacto del juego]
+
+Análisis completo del juego (300-400 palabras):
+- Descripción detallada y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
+- Valoración y recomendación
+
+## 2. [Nombre del Juego 2]
+[IMG_PLACEHOLDER_2: nombre exacto del juego]
+
+Análisis completo del juego (300-400 palabras):
+- Descripción detallada y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
+- Valoración y recomendación
+
+## 3. [Nombre del Juego 3]
+[IMG_PLACEHOLDER_3: nombre exacto del juego]
+
+Análisis completo del juego (300-400 palabras):
+- Descripción detallada y características principales
+- Mecánicas de juego y jugabilidad
+- Puntos fuertes y débiles
+- Por qué destaca en su categoría
+- Valoración y recomendación
+
+## 4. [Nombre del Juego 4]
+[IMG_PLACEHOLDER_4: nombre exacto del juego]
+
+Análisis completo del juego (300-400 palabras)
+
+## 5. [Nombre del Juego 5]
+[IMG_PLACEHOLDER_5: nombre exacto del juego]
+
+Análisis completo del juego (300-400 palabras)
+
+## Conclusión
+Conclusión con comparativa final y recomendaciones (200-250 palabras)
+` : `
+ESTRUCTURA OBLIGATORIA (Artículo de opinión/análisis - El tema es lo importante):
+
+## Introducción
+Introducción atractiva sobre el tema principal (250-300 palabras)
+
+## [Primer aspecto del tema]
+Desarrollo del primer punto del tema (400-500 palabras)
+Menciona 2-3 juegos como EJEMPLOS ilustrativos del punto
+[IMG_PLACEHOLDER_1: nombre de un juego mencionado como ejemplo]
+
+## [Segundo aspecto del tema]
+Desarrollo del segundo punto del tema (400-500 palabras)
+Menciona 2-3 juegos como EJEMPLOS ilustrativos del punto
+[IMG_PLACEHOLDER_2: nombre de un juego mencionado como ejemplo]
+
+## [Tercer aspecto del tema]
+Desarrollo del tercer punto del tema (400-500 palabras)
+Menciona 2-3 juegos como EJEMPLOS ilustrativos del punto
+[IMG_PLACEHOLDER_3: nombre de un juego mencionado como ejemplo]
+
+## Conclusión
+Reflexión final sobre el tema y tendencias futuras (250-300 palabras)
+
+IMPORTANTE:
+- El FOCO está en desarrollar el TEMA, no en analizar juegos
+- Los juegos son EJEMPLOS BREVES para ilustrar los puntos
+- NO hagas análisis extensos de cada juego
+- Menciona cada juego en 2-3 líneas máximo
+- La ficha del juego ya proporciona la información detallada
+`;
+
   const prompt = `
 Escribe un artículo profesional COMPLETO sobre juegos móviles con el título: "${title}"
 
@@ -335,61 +424,25 @@ REQUISITOS OBLIGATORIOS:
 - SOLO menciona juegos REALES que existan en las tiendas (App Store / Google Play)
 - PROHIBIDO inventar juegos, desarrolladoras o datos falsos
 - Usa SOLO información verificable de la búsqueda web proporcionada
-- Menciona periféricos o accesorios reales si es relevante para el tema
 - Incluye datos específicos y tendencias actuales
 - Tono experto pero accesible
 
-ESTRUCTURA OBLIGATORIA:
-
-## Introducción
-Introducción atractiva y contextualizada (200-250 palabras)
-
-## [Nombre del Juego 1 o apartado específico]
-[IMG_PLACEHOLDER_1: nombre exacto del juego o concepto]
-
-Análisis detallado de este juego o tema (300-350 palabras):
-- Descripción y características principales
-- Mecánicas de juego y jugabilidad
-- Puntos fuertes y débiles
-- Por qué destaca en su categoría
-
-## [Nombre del Juego 2 o apartado específico]
-[IMG_PLACEHOLDER_2: nombre exacto del juego o concepto]
-
-Análisis detallado de este juego o tema (300-350 palabras):
-- Descripción y características principales
-- Mecánicas de juego y jugabilidad
-- Puntos fuertes y débiles
-- Por qué destaca en su categoría
-
-## [Nombre del Juego 3 o apartado específico]
-[IMG_PLACEHOLDER_3: nombre exacto del juego o concepto]
-
-Análisis detallado de este juego o tema (300-350 palabras):
-- Descripción y características principales
-- Mecánicas de juego y jugabilidad
-- Puntos fuertes y débiles
-- Por qué destaca en su categoría
-
-## Conclusión
-Conclusión completa con recomendaciones claras (200-250 palabras)
+${structurePrompt}
 
 CRÍTICO:
 - Completa TODAS las secciones hasta el final
 - La conclusión debe estar COMPLETA con párrafo final
 - NO cortes el texto a mitad de oración
 - Asegúrate de cerrar todas las ideas presentadas
-- Menciona 5-8 juegos reales verificables
 
 IMÁGENES - MUY IMPORTANTE:
-- Cada [IMG_PLACEHOLDER_X] debe tener una descripción ÚNICA y ESPECÍFICA
-- Usa nombres EXACTOS de juegos mencionados en esa sección
+- Cada [IMG_PLACEHOLDER_X] debe tener el nombre EXACTO del juego mencionado
 - Ejemplos CORRECTOS:
-  * [IMG_PLACEHOLDER_1: Clash of Clans strategy gameplay]
-  * [IMG_PLACEHOLDER_2: PUBG Mobile battle royale action]
-  * [IMG_PLACEHOLDER_3: Razer Kishi mobile controller]
-- NO uses descripciones genéricas como "juego de estrategia"
-- Cada imagen debe ser de un juego o concepto DIFERENTE
+  * [IMG_PLACEHOLDER_1: Clash of Clans]
+  * [IMG_PLACEHOLDER_2: PUBG Mobile]
+  * [IMG_PLACEHOLDER_3: Genshin Impact]
+- NO uses descripciones genéricas
+- Cada imagen debe ser de un juego DIFERENTE
 `;
 
   try {
@@ -709,7 +762,8 @@ async function generateAndPublishArticle() {
       case 'guide':
         // Try trending topic first, fallback to predefined
         const guideTopic = trendingTopic || articleType.topics[Math.floor(Math.random() * articleType.topics.length)];
-        title = articleType.template.replace('{topic}', guideTopic);
+        const randomTemplate = articleType.templates[Math.floor(Math.random() * articleType.templates.length)];
+        title = randomTemplate.replace('{topic}', guideTopic);
         searchTerm = guideTopic;
         if (trendingTopic) {
           console.log('   🔥 Using TRENDING topic for guide');

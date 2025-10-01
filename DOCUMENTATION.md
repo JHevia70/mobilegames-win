@@ -5,12 +5,14 @@
 **MobileGames.win** es un sitio web de reviews de juegos móviles con generación automática de artículos usando IA. El sistema genera contenido profesional diariamente sin intervención manual.
 
 ### 🎯 Características Principales
-- **Generación automática de artículos** con Gemini AI
-- **Diseño periodístico profesional** estilo newspaper
-- **Publicación diaria automática** vía GitHub Actions
+- **Generación automática de artículos** con HuggingFace (Qwen 2.5 7B) o Gemini AI
+- **Descubrimiento de tendencias** mediante IA y Google Search
+- **Fichas de juegos** con datos reales de Google Play Store
+- **Panel de administración** para edición manual de artículos
+- **Diseño periodístico profesional** estilo newspaper con modo oscuro
+- **Publicación automática programada** vía GitHub Actions
 - **Base de datos dinámica** con Firestore
 - **Deploy automático** a Firebase Hosting
-- **Sistema de respaldo** con templates predefinidos
 
 ---
 
@@ -29,10 +31,12 @@
 - **Storage**: Firebase Storage (preparado)
 
 ### **IA y Automatización**
-- **IA**: Google Gemini 2.5 Flash
-- **CI/CD**: GitHub Actions
-- **Imágenes**: Unsplash API
-- **Scheduling**: Cron jobs diarios
+- **IA Principal**: HuggingFace (Qwen 2.5 7B Instruct) - 14,400 requests/día gratis
+- **IA Backup**: Google Gemini 2.0 Flash Exp - 50 requests/día gratis
+- **CI/CD**: GitHub Actions con 3 workflows programados
+- **Datos de Juegos**: Google Play Store scraper (google-play-scraper)
+- **Imágenes**: Google Play Store screenshots + Unsplash API (fallback)
+- **Scheduling**: Cron jobs (diario, semanal, cada 12h)
 
 ---
 
@@ -93,9 +97,12 @@ mobilegames-win/
 │   │   │   ├── CategoryModal.tsx      # Modal de categorías
 │   │   │   ├── ArticleModal.tsx       # Modal de artículo completo
 │   │   │   └── VisualEffects.tsx      # Efectos visuales gaming
-│   │   └── layout/
-│   │       ├── NewspaperHeader.tsx    # Header estilo periódico
-│   │       └── Footer.tsx             # Footer del sitio
+│   │   ├── layout/
+│   │   │   ├── NewspaperHeader.tsx    # Header estilo periódico
+│   │   │   └── Footer.tsx             # Footer del sitio
+│   │   └── admin/
+│   │       ├── ArticleEditor.tsx      # Editor de artículos con Markdown
+│   │       └── AdminAuth.tsx          # Autenticación para admin panel
 │   ├── lib/
 │   │   ├── articles.ts               # Funciones para artículos de Firestore
 │   │   ├── firebase.ts               # Configuración Firebase cliente
@@ -103,6 +110,8 @@ mobilegames-win/
 │   └── app/
 │       ├── page.tsx                  # Página principal
 │       ├── teletipos/page.tsx        # Página de archivo de noticias
+│       ├── admin/page.tsx            # Panel de administración (/admin)
+│       ├── api/articles/route.ts     # API routes para CRUD de artículos
 │       └── layout.tsx                # Layout base
 ├── package.json                      # Dependencias y scripts
 ├── tailwind.config.js               # Configuración Tailwind con tema gaming
@@ -113,6 +122,31 @@ mobilegames-win/
 ---
 
 ## 🤖 Sistema de Generación de Artículos
+
+### **Sistema Híbrido de Descubrimiento de Temas**
+
+El sistema ahora utiliza un **enfoque híbrido** para seleccionar temas de artículos:
+
+**Para artículos TOP 5:**
+- Usa categorías predefinidas (RPG, Acción, Estrategia, Puzzle, etc.)
+- Analiza juegos reales de cada categoría desde Google Play Store
+- Rotación mensual de categorías
+
+**Para artículos de Análisis/Guías/Comparativas:**
+1. **Búsqueda de tendencias** (prioridad):
+   - Consulta Google Search sobre tendencias actuales en gaming móvil
+   - Identifica temas trending, debates, tecnologías emergentes
+   - Extrae juegos más discutidos del momento
+
+2. **Fallback a temas predefinidos**:
+   - Si no encuentra tendencias relevantes, usa lista predefinida
+   - Asegura que siempre se genere contenido de calidad
+
+**Estructura de contenido según tipo:**
+
+- **TOP 5**: Análisis detallado de cada juego (300-400 palabras por juego)
+- **Análisis/Guías**: Desarrollo del tema principal con juegos como ejemplos breves (2-3 líneas por juego)
+- Las fichas de juegos (Google Play) proporcionan información detallada automáticamente
 
 ### **IMPORTANTE: Estrategia de Contenidos y No Duplicación**
 
@@ -258,6 +292,102 @@ interface ArticleCardProps {
 - Header estilo periódico con fecha actual
 - Navegación responsive
 - Buscador integrado
+
+---
+
+## 🔐 Panel de Administración
+
+### **Acceso al Panel**
+- **URL**: `https://mobilegames-win.web.app/admin`
+- **Contraseña por defecto**: `admin2025`
+- **Configuración**: Variable `NEXT_PUBLIC_ADMIN_PASSWORD` en `.env.local`
+
+### **Funcionalidades del Panel**
+
+#### 1. **Lista de Artículos**
+- Tabla completa con todos los artículos publicados
+- Vista previa de imagen miniatura
+- Información de categoría, autor, fecha y estado
+- Acciones rápidas: Editar y Eliminar
+- Botón para crear nuevos artículos
+
+#### 2. **Editor de Artículos**
+El editor permite modificar todos los campos de un artículo:
+
+**Campos principales:**
+- **Título**: Título del artículo
+- **Slug**: URL amigable (se genera automáticamente del título)
+- **Extracto**: Resumen breve para listados
+- **Contenido**: Editor Markdown completo con textarea grande
+
+**Metadatos:**
+- **Categoría**: RPG, Estrategia, Acción, Puzzle, Deportes, Aventura, Simulación, TOP 5, Análisis, Guías
+- **Autor**: Nombre del autor
+- **URL de Imagen**: Imagen hero del artículo
+- **Fecha de Publicación**: Texto libre (ej: "1 de enero de 2025")
+
+**Configuración:**
+- **Tiempo de Lectura**: Minutos estimados
+- **Valoración**: De 1.0 a 5.0
+- **Tipo**: article, top5, analysis, guide, comparison
+- **Estado**: published (publicado) o draft (borrador)
+- **Destacado**: Checkbox para marcar como featured
+
+#### 3. **API Routes** (`/api/articles`)
+El panel utiliza API routes de Next.js para interactuar con Firestore:
+
+```typescript
+POST /api/articles
+// Crear nuevo artículo
+Body: { title, content, excerpt, ... }
+Response: { success: true, id: "doc_id" }
+
+PUT /api/articles
+// Actualizar artículo existente
+Body: { id, title, content, excerpt, ... }
+Response: { success: true, id: "doc_id" }
+
+DELETE /api/articles
+// Eliminar artículo
+Body: { id }
+Response: { success: true, id: "doc_id" }
+```
+
+#### 4. **Autenticación**
+- Sistema simple con contraseña almacenada en `sessionStorage`
+- La sesión persiste hasta cerrar el navegador
+- No hay cuentas de usuario múltiples (single admin)
+
+### **Flujo de Trabajo**
+
+1. **Editar artículo existente**:
+   - Ir a `/admin` e ingresar contraseña
+   - Buscar artículo en la lista
+   - Click en "Editar"
+   - Modificar campos necesarios
+   - Click en "Guardar Artículo"
+   - Los cambios se ven inmediatamente en el sitio (sin deploy)
+
+2. **Crear nuevo artículo**:
+   - Ir a `/admin` e ingresar contraseña
+   - Click en "+ Nuevo Artículo"
+   - Completar todos los campos
+   - Click en "Guardar Artículo"
+   - El artículo aparece inmediatamente en el sitio
+
+3. **Eliminar artículo**:
+   - Buscar artículo en la lista
+   - Click en "Eliminar"
+   - Confirmar eliminación
+   - El artículo se elimina de Firestore inmediatamente
+
+### **Notas de Seguridad**
+
+⚠️ **Importante**: Este es un sistema de autenticación básico adecuado para administración personal. Para uso en producción con múltiples usuarios, se recomienda:
+- Implementar Firebase Authentication
+- Agregar roles y permisos
+- Usar HTTPS en todas las conexiones
+- Configurar Firestore Security Rules restrictivas
 
 ---
 
@@ -536,9 +666,14 @@ firebase deploy --only hosting
 
 ---
 
-**📅 Documentación actualizada**: 30 de septiembre de 2025
+**📅 Documentación actualizada**: 1 de octubre de 2025
 **👨‍💻 Desarrollado con**: Claude Code
-**🔄 Última actualización del sistema**: Integración completa de Gemini AI
+**🔄 Última actualización del sistema**:
+- Panel de administración completo (/admin)
+- Sistema híbrido de descubrimiento de tendencias
+- Integración con Google Play Store para fichas de juegos
+- Modo oscuro para paneles de juegos
+- Variación en títulos de artículos tipo guía
 
 ---
 
