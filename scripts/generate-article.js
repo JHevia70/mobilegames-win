@@ -479,26 +479,73 @@ async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
   try {
     const page = pageOverride || Math.floor(Math.random() * 3) + 1;
 
-    // Simplify search term
+    // Simplify search term and extract keywords
     let simplifiedTerm = searchTerm.toLowerCase();
+    
+    // Extract specific game names or keywords from search term
+    const keywords = simplifiedTerm
+      .replace(/[^\w\s]/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 3 && !['para', 'los', 'las', 'del', 'con', 'the', 'and', 'for'].includes(word));
 
     // Extract key gaming concepts
-    const gameGenres = ['rpg', 'strategy', 'action', 'puzzle', 'racing', 'shooter', 'moba', 'fps'];
+    const gameGenres = ['rpg', 'strategy', 'action', 'puzzle', 'racing', 'shooter', 'moba', 'fps', 'adventure', 'simulation'];
     const foundGenre = gameGenres.find(genre => simplifiedTerm.includes(genre));
+    
+    // Detect specific topics
+    const isBattleRoyale = /battle royale|fortnite|pubg|apex/i.test(simplifiedTerm);
+    const isMOBA = /moba|league|dota|arena/i.test(simplifiedTerm);
+    const isCard = /card|deck|hearthstone|magic/i.test(simplifiedTerm);
+    const isSports = /soccer|football|basketball|fifa|nba|sports/i.test(simplifiedTerm);
+    const isRacing = /racing|car|driving|asphalt|need for speed/i.test(simplifiedTerm);
 
-    // Search strategies - mix of people playing and gaming devices for variety
-    const searchStrategies = [
-      foundGenre ? `people playing ${foundGenre} mobile game` : null,
-      foundGenre ? `${foundGenre} mobile game` : null,
+    // Build intelligent search strategies based on content
+    const searchStrategies = [];
+    
+    // Add specific game-related searches first
+    if (isBattleRoyale) {
+      searchStrategies.push('battle royale mobile game', 'people playing battle royale');
+    }
+    if (isMOBA) {
+      searchStrategies.push('moba mobile game', 'mobile arena game');
+    }
+    if (isCard) {
+      searchStrategies.push('card game mobile', 'people playing card game phone');
+    }
+    if (isSports) {
+      searchStrategies.push('mobile sports game', 'soccer mobile game');
+    }
+    if (isRacing) {
+      searchStrategies.push('racing mobile game', 'car game smartphone');
+    }
+    
+    // Add keyword-based searches if we have good keywords
+    if (keywords.length > 0) {
+      searchStrategies.push(`${keywords[0]} mobile game`);
+      if (keywords.length > 1) {
+        searchStrategies.push(`${keywords.slice(0, 2).join(' ')} mobile`);
+      }
+    }
+    
+    // Add genre-specific searches
+    if (foundGenre) {
+      searchStrategies.push(`${foundGenre} mobile game`, `people playing ${foundGenre} game phone`);
+    }
+    
+    // Add general mobile gaming searches as fallback
+    searchStrategies.push(
       'people playing mobile games',
       'smartphone gaming lifestyle',
       'mobile gaming',
-      'video game controller',
       'gaming phone',
-      'mobile gamer'
-    ].filter(Boolean);
+      'mobile gamer',
+      'video game controller'
+    );
+    
+    // Remove duplicates and filter
+    const uniqueStrategies = [...new Set(searchStrategies)].filter(Boolean);
 
-    for (let strategy of searchStrategies) {
+    for (let strategy of uniqueStrategies) {
       console.log(`   🔍 Searching Unsplash: "${strategy}" (page ${page})`);
 
       try {

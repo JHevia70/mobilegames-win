@@ -215,18 +215,64 @@ Estos cinco títulos representan la evolución de la estrategia móvil, cada uno
   }
 ];
 
-// Get article image from Unsplash - focus on people playing mobile games
+// Get article image from Unsplash - intelligent search based on content
 async function getArticleImage(searchTerm) {
   try {
-    // Enhanced search strategies - mix of people and devices for variety
-    const searchStrategies = [
-      `people playing ${searchTerm}`,
+    // Extract keywords from search term
+    const simplifiedTerm = searchTerm.toLowerCase();
+    const keywords = simplifiedTerm
+      .replace(/[^\w\s]/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 3 && !['para', 'los', 'las', 'del', 'con', 'the', 'and', 'for'].includes(word));
+    
+    // Detect specific game categories
+    const isBattleRoyale = /battle royale|fortnite|pubg|apex/i.test(simplifiedTerm);
+    const isMOBA = /moba|league|dota|arena/i.test(simplifiedTerm);
+    const isCard = /card|deck|hearthstone/i.test(simplifiedTerm);
+    const isSports = /soccer|football|basketball|fifa|sports/i.test(simplifiedTerm);
+    const isRacing = /racing|car|driving/i.test(simplifiedTerm);
+    const isRPG = /rpg|role playing/i.test(simplifiedTerm);
+    
+    // Build smart search strategies based on detected content
+    const searchStrategies = [];
+    
+    // Add specific category searches first (most relevant)
+    if (isBattleRoyale) {
+      searchStrategies.push('battle royale mobile', 'fortnite mobile game');
+    }
+    if (isMOBA) {
+      searchStrategies.push('moba mobile game', 'mobile arena game');
+    }
+    if (isCard) {
+      searchStrategies.push('card game mobile phone', 'mobile card game');
+    }
+    if (isSports) {
+      searchStrategies.push('mobile sports game', 'fifa mobile soccer');
+    }
+    if (isRacing) {
+      searchStrategies.push('racing mobile game', 'mobile car racing');
+    }
+    if (isRPG) {
+      searchStrategies.push('rpg mobile game', 'mobile adventure rpg');
+    }
+    
+    // Add keyword-based searches if we have good keywords
+    if (keywords.length > 0) {
+      searchStrategies.push(`${keywords[0]} mobile game`);
+      if (keywords.length > 1) {
+        searchStrategies.push(`${keywords.slice(0, 2).join(' ')} mobile`);
+      }
+    }
+    
+    // Add original term searches
+    searchStrategies.push(
       `${searchTerm} mobile game`,
+      `people playing ${searchTerm}`,
       'people playing mobile games',
       'smartphone gaming',
       'gaming phone',
       'mobile gamer'
-    ];
+    );
 
     for (let query of searchStrategies) {
       try {
