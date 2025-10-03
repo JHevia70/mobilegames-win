@@ -486,14 +486,14 @@ async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
     const gameGenres = ['rpg', 'strategy', 'action', 'puzzle', 'racing', 'shooter', 'moba', 'fps'];
     const foundGenre = gameGenres.find(genre => simplifiedTerm.includes(genre));
 
-    // Search strategies - broader terms for better results
+    // Search strategies - focus on people playing mobile games
     const searchStrategies = [
-      foundGenre ? `${foundGenre} mobile game` : null,
-      'mobile gaming',
-      'smartphone gaming',
-      'video game controller',
-      'gaming phone',
-      'mobile esports'
+      foundGenre ? `people playing ${foundGenre} mobile game` : null,
+      'people playing mobile games',
+      'person using smartphone gaming',
+      'mobile gamer playing',
+      'smartphone gaming lifestyle',
+      'mobile gaming player'
     ].filter(Boolean);
 
     for (let strategy of searchStrategies) {
@@ -525,17 +525,17 @@ async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
       }
     }
 
-    // If all fails, use a variety of curated gaming images from Unsplash
-    console.log(`   🎲 Using random curated gaming image`);
+    // If all fails, use a variety of curated mobile gaming images from Unsplash (people playing)
+    console.log(`   🎲 Using random curated mobile gaming image`);
     const curatedImages = [
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200',
-      'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200',
-      'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200',
-      'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=1200',
-      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=1200',
-      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=1200'
+      'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200', // Person with gaming setup
+      'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200', // Mobile gaming
+      'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=1200', // Gaming lifestyle
+      'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=1200', // Mobile phone gaming
+      'https://images.unsplash.com/photo-1625805866449-3589fe3f71a3?w=1200', // Smartphone gaming
+      'https://images.unsplash.com/photo-1580234931426-e0c97857b519?w=1200', // Mobile player
+      'https://images.unsplash.com/photo-1616499452689-1920f7c45df6?w=1200', // Gaming phone
+      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=1200'  // Mobile esports
     ];
 
     const randomImage = curatedImages[Math.floor(Math.random() * curatedImages.length)];
@@ -543,8 +543,8 @@ async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
 
   } catch (error) {
     console.error('   ❌ Error fetching image:', error.message);
-    // Ultimate fallback
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200';
+    // Ultimate fallback - person playing mobile game
+    return 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200';
   }
 }
 

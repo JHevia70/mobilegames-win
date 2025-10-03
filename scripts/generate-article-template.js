@@ -215,25 +215,42 @@ Estos cinco títulos representan la evolución de la estrategia móvil, cada uno
   }
 ];
 
-// Get article image from Unsplash
+// Get article image from Unsplash - focus on people playing mobile games
 async function getArticleImage(searchTerm) {
   try {
-    const result = await unsplash.search.getPhotos({
-      query: searchTerm,
-      page: 1,
-      perPage: 1,
-      orientation: 'landscape'
-    });
+    // Enhanced search strategies for mobile gaming with people
+    const searchStrategies = [
+      `people playing ${searchTerm}`,
+      'people playing mobile games',
+      'smartphone gaming player',
+      'mobile gamer'
+    ];
 
-    if (result.response && result.response.results.length > 0) {
-      const photo = result.response.results[0];
-      return `${photo.urls.regular}?w=1200&h=600&fit=crop`;
+    for (let query of searchStrategies) {
+      try {
+        const result = await unsplash.search.getPhotos({
+          query: query,
+          page: 1,
+          perPage: 10,
+          orientation: 'landscape'
+        });
+
+        if (result.response && result.response.results.length > 0) {
+          // Pick a random photo from results for variety
+          const randomIndex = Math.floor(Math.random() * result.response.results.length);
+          const photo = result.response.results[randomIndex];
+          return `${photo.urls.regular}?w=1200&h=600&fit=crop`;
+        }
+      } catch (err) {
+        continue;
+      }
     }
 
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop';
+    // Fallback to curated mobile gaming image
+    return 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200&h=600&fit=crop';
   } catch (error) {
     console.error('Error fetching image:', error);
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop';
+    return 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=1200&h=600&fit=crop';
   }
 }
 
