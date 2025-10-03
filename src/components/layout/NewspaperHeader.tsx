@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Search, ChevronDown, Bell } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
 import Button from '@/components/ui/Button';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import SearchBar from '@/components/ui/SearchBar';
 import { cn } from '@/lib/utils';
 
 interface NewspaperHeaderProps {
@@ -16,6 +17,11 @@ interface NewspaperHeaderProps {
 const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [currentPath, setCurrentPath] = useState('');
+
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   const navigation = [
     { name: 'Inicio', href: '/' },
@@ -23,6 +29,13 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryCli
     { name: 'Tops', href: '/tops' },
     { name: 'Teletipos', href: '/teletipos' },
   ];
+
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return currentPath === '/';
+    }
+    return currentPath.startsWith(href);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -93,7 +106,9 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryCli
                     href={item.href}
                     className={cn(
                       'flex items-center px-1 py-2 text-sm font-medium border-b-2 transition-colors',
-                      'text-gray-700 dark:text-gray-200 border-transparent hover:text-gaming-red hover:border-gaming-red/30'
+                      isActive(item.href)
+                        ? 'text-gaming-red border-gaming-red'
+                        : 'text-gray-700 dark:text-gray-200 border-transparent hover:text-gaming-red hover:border-gaming-red/30'
                     )}
                   >
                     {item.name}
@@ -105,16 +120,7 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryCli
 
           {/* Search bar */}
           <div className="hidden md:block">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar reviews, juegos..."
-                className="block w-64 pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-gaming-red focus:border-transparent placeholder-gray-500 dark:placeholder-gray-400"
-              />
-            </div>
+            <SearchBar className="w-64" placeholder="Buscar reviews, juegos..." />
           </div>
 
           {/* Mobile menu button */}
@@ -151,7 +157,9 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryCli
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
                       'w-full text-left block px-3 py-3 text-base font-medium transition-colors',
-                      'text-gray-700 dark:text-gray-200 hover:text-gaming-red hover:bg-gray-50 dark:hover:bg-gray-800'
+                      isActive(item.href)
+                        ? 'text-gaming-red bg-gray-100 dark:bg-gray-800 border-l-4 border-gaming-red'
+                        : 'text-gray-700 dark:text-gray-200 hover:text-gaming-red hover:bg-gray-50 dark:hover:bg-gray-800'
                     )}
                   >
                     {item.name}
@@ -160,11 +168,7 @@ const NewspaperHeader: React.FC<NewspaperHeaderProps> = ({ locale, onCategoryCli
 
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="px-3">
-                    <input
-                      type="text"
-                      placeholder="Buscar..."
-                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-gaming-red focus:border-transparent"
-                    />
+                    <SearchBar placeholder="Buscar..." isMobile={true} />
                   </div>
                 </div>
               </div>

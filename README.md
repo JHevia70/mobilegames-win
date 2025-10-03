@@ -1,4 +1,15 @@
-# 🎮 MobileGames.win
+# 🎮## 🚀 Características
+
+- **🤖 Artículos automáticos diarios** generados con Gemini 2.0 Flash Experimental
+- **📰 Breaking News cada 12h** con sistema de notificaciones
+- **🏆 Rankings TOP5 semanales** de los mejores juegos
+- **🔍 Búsqueda en tiempo real** de artículos y noticias con filtros
+- **📧 Newsletter con Brevo** - Sistema completo de suscriptores con estadísticas mensuales
+- **📱 Diseño periodístico responsive** estilo newspaper
+- **🔥 Firebase Firestore** para base de datos dinámica
+- **⚡ GitHub Actions** para automatización completa
+- **🎨 Tailwind CSS** con tema gaming personalizado
+- **📸 Unsplash API** para imágenes dinámicass.win
 
 Sitio web profesional de reviews de juegos móviles con **generación automática de artículos usando Gemini AI**.
 
@@ -7,7 +18,8 @@ Sitio web profesional de reviews de juegos móviles con **generación automátic
 - **🤖 Artículos automáticos diarios** generados con Gemini 2.0 Flash Experimental
 - **📰 Breaking News cada 12h** con sistema de notificaciones
 - **🏆 Rankings TOP5 semanales** de los mejores juegos
-- **📱 Diseño periodístico responsive** estilo newspaper
+- **� Búsqueda en tiempo real** de artículos y noticias con filtros
+- **�📱 Diseño periodístico responsive** estilo newspaper
 - **🔥 Firebase Firestore** para base de datos dinámica
 - **⚡ GitHub Actions** para automatización completa
 - **🎨 Tailwind CSS** con tema gaming personalizado
@@ -125,6 +137,12 @@ interface Article {
 - **Firebase**: Project `mobilegames-win`
   - Colección `articles`: Artículos principales
   - Colección `breaking_news`: Noticias de última hora
+  - Colección `subscribers`: Suscriptores del newsletter
+  - Colección `subscriberGroups`: Grupos de segmentación
+- **Brevo (Sendinblue)**: Servicio de email marketing
+  - Plan Free: 300 emails/día (9,000/mes permanente)
+  - Estadísticas en tiempo real
+  - Emails transaccionales de bienvenida
 - **Unsplash**: Para imágenes de artículos
 
 ## 📈 Métricas
@@ -150,7 +168,8 @@ interface Article {
 
 ## 📚 Documentación
 
-📖 **[Ver documentación completa](./DOCUMENTATION.md)** con todos los detalles técnicos, troubleshooting y configuración avanzada.
+- 📖 **[Documentación completa](./DOCUMENTATION.md)** - Detalles técnicos, troubleshooting y configuración avanzada
+- 🔍 **[Sistema de búsqueda](./SEARCH.md)** - Guía completa del sistema de búsqueda en tiempo real
 
 ## 🔄 Estado del Sistema
 
@@ -167,22 +186,59 @@ interface Article {
 - [x] Banner de última hora clickeable
 - [x] Modal de noticias
 - [x] Página de archivo de Teletipos
+- [x] **Búsqueda en tiempo real** de artículos y breaking news
+- [x] Filtros de búsqueda por tipo de contenido
+- [x] Algoritmo de relevancia inteligente
+- [x] **Newsletter completo con Brevo**
+  - [x] Sistema de suscripción con validación
+  - [x] Emails automáticos de bienvenida
+  - [x] Panel admin de gestión de suscriptores
+  - [x] Estadísticas mensuales (enviados, entregados, aperturas, clicks)
+  - [x] Filtros y acciones masivas
+  - [x] Sistema de grupos para segmentación
+  - [x] Monitoreo de cuota en tiempo real
 - [x] Diseño responsive estilo periódico
 - [x] Dark mode
 - [x] Integración completa con Firestore
 
 ## 🎯 Próximas Funcionalidades
 
-- [ ] Páginas individuales de artículos completos
+- [ ] UI completa para gestión de grupos de suscriptores
+- [ ] Campañas de email programadas
+- [ ] Búsqueda avanzada con filtros por fecha y rating
+- [ ] Autocompletado inteligente en búsqueda
 - [ ] Sistema de comentarios
-- [ ] Newsletter funcional con envíos
-- [ ] Panel de administración
 - [ ] Soporte multi-idioma (ES/EN)
+- [ ] Analytics de búsquedas populares
+
+## 📧 Sistema de Newsletter
+
+### Panel de Administración
+Accede al panel completo en: `/admin/newsletter`
+
+**Funcionalidades:**
+- ✅ **Gestión de suscriptores**: Ver, filtrar, buscar y administrar todos los suscriptores
+- ✅ **Acciones masivas**: Eliminar, bloquear, activar múltiples suscriptores
+- ✅ **Sistema de grupos**: Segmentación de suscriptores para campañas dirigidas
+- ✅ **Estadísticas en tiempo real**:
+  - Cuota diaria disponible (300 emails/día)
+  - Emails enviados en el mes actual
+  - Tasa de entrega
+  - Tasa de apertura
+  - Tasa de clicks
+- ✅ **Exportación CSV**: Descarga lista completa de suscriptores
+- ✅ **Emails automáticos**: Envío instantáneo de bienvenida al suscribirse
+
+### Integración con Brevo
+- **Plan**: Free (permanente)
+- **Límite**: 300 emails/día = 9,000/mes
+- **Tipo**: Emails transaccionales desde `info@mobilegames.win`
+- **Tracking**: Aperturas, clicks y entregas en tiempo real
 
 ---
 
 **🤖 Desarrollado con Gemini AI y Claude Code**
-**📅 Última actualización**: Septiembre 2025
+**📅 Última actualización**: Octubre 2025
 
 ---
 

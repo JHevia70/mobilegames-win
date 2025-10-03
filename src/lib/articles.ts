@@ -84,6 +84,54 @@ export async function getArticles(): Promise<Article[]> {
   return fetchArticlesSDK();
 }
 
+// Get ALL articles (including drafts) for admin panel
+export async function getAllArticles(): Promise<Article[]> {
+  try {
+    console.log('🔍 Fetching ALL articles (including drafts) with Firebase SDK...');
+
+    const articlesRef = collection(db, 'articles');
+    const snapshot = await getDocs(articlesRef);
+
+    console.log(`📥 Received ${snapshot.size} documents`);
+
+    const articles: Article[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      articles.push({
+        id: doc.id,
+        title: data.title || 'Sin título',
+        content: data.content || 'Sin contenido',
+        excerpt: data.excerpt || 'Sin descripción',
+        image: data.image || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=400&fit=crop',
+        category: data.category || 'General',
+        author: data.author || 'Redacción',
+        publishDate: data.publishDate || 'Fecha desconocida',
+        readTime: data.readTime || 5,
+        rating: data.rating || 4.0,
+        slug: data.slug || `article-${doc.id}`,
+        type: data.type || 'article',
+        status: data.status || 'published',
+        featured: data.featured || false,
+        createdAt: data.createdAt,
+      } as Article);
+    });
+
+    // Sort by createdAt timestamp (most recent first)
+    const sortedArticles = articles.sort((a, b) => {
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA; // Descending order (newest first)
+    });
+
+    console.log(`✅ Firebase SDK returned ${sortedArticles.length} total articles`);
+    return sortedArticles;
+
+  } catch (error) {
+    console.error('❌ Firebase SDK error:', error);
+    throw error;
+  }
+}
+
 // Get featured articles
 export async function getFeaturedArticles(): Promise<Article[]> {
   const articles = await fetchArticlesSDK();

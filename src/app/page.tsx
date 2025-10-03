@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, TrendingUp, Users, Award, Star, Clock, User, Gamepad2, Swords, Brain, Zap, Puzzle, Circle, Settings } from 'lucide-react';
+import { Calendar, TrendingUp, Users, Award, Star, Clock, User, Gamepad2, Swords, Brain, Zap, Puzzle, Circle, Settings, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import ArticleCard from '@/components/ui/ArticleCard';
@@ -12,9 +12,16 @@ import BreakingNewsBanner from '@/components/ui/BreakingNewsBanner';
 import { type Article } from '@/lib/articles';
 import NewspaperHeader from '@/components/layout/NewspaperHeader';
 import Footer from '@/components/layout/Footer';
+import { subscribeToNewsletter } from '@/lib/newsletter';
 
 const HomePage = () => {
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [sidebarEmail, setSidebarEmail] = React.useState('');
+  const [sidebarLoading, setSidebarLoading] = React.useState(false);
+  const [sidebarMessage, setSidebarMessage] = React.useState<{ type: 'success' | 'error' | null; text: string }>({
+    type: null,
+    text: '',
+  });
   const heroArticle: Article = {
     id: '1',
     title: 'El Futuro del Gaming Móvil: Análisis Completo de las Tendencias 2024',
@@ -136,6 +143,34 @@ const HomePage = () => {
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategory(categoryName);
+  };
+
+  const handleSidebarSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSidebarLoading(true);
+    setSidebarMessage({ type: null, text: '' });
+
+    try {
+      const result = await subscribeToNewsletter(sidebarEmail);
+      
+      if (result.success) {
+        setSidebarMessage({ type: 'success', text: '¡Suscrito! Revisa tu email.' });
+        setSidebarEmail('');
+        // Redirigir a página de confirmación después de 2 segundos
+        setTimeout(() => {
+          window.location.href = '/newsletter/gracias';
+        }, 2000);
+      } else {
+        setSidebarMessage({ type: 'error', text: result.message });
+      }
+    } catch (error) {
+      setSidebarMessage({ 
+        type: 'error', 
+        text: 'Error al procesar la suscripción.' 
+      });
+    } finally {
+      setSidebarLoading(false);
+    }
   };
 
   return (
@@ -278,16 +313,49 @@ const HomePage = () => {
                   <p className="text-red-100 text-sm mb-4">
                     Recibe las últimas reviews y noticias directamente en tu email
                   </p>
-                  <div className="space-y-3">
+                  <form onSubmit={handleSidebarSubscribe} className="space-y-3">
                     <input
                       type="email"
+                      value={sidebarEmail}
+                      onChange={(e) => setSidebarEmail(e.target.value)}
                       placeholder="tu@email.com"
-                      className="w-full px-3 py-2 rounded text-gray-900 text-sm focus:ring-2 focus:ring-white focus:outline-none"
+                      disabled={sidebarLoading}
+                      className="w-full px-3 py-2 rounded text-gray-900 text-sm focus:ring-2 focus:ring-white focus:outline-none disabled:opacity-50"
+                      required
                     />
-                    <Button className="w-full bg-white text-gaming-red hover:bg-gray-100 font-medium">
-                      Suscribirse
+                    <Button 
+                      type="submit"
+                      disabled={sidebarLoading}
+                      className="w-full bg-white text-gaming-red hover:bg-gray-100 font-medium disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {sidebarLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Suscribiendo...
+                        </>
+                      ) : (
+                        'Suscribirse'
+                      )}
                     </Button>
-                  </div>
+                  </form>
+                  
+                  {/* Success/Error Messages */}
+                  {sidebarMessage.type && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`mt-3 flex items-center space-x-2 text-sm ${
+                        sidebarMessage.type === 'success' ? 'text-green-100' : 'text-red-100'
+                      }`}
+                    >
+                      {sidebarMessage.type === 'success' ? (
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      )}
+                      <span>{sidebarMessage.text}</span>
+                    </motion.div>
+                  )}
                 </CardContent>
               </Card>
             </>

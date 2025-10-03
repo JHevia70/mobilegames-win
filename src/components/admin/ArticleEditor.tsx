@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import type { Article } from '@/lib/articles';
+import { createArticle, updateArticle } from '@/lib/admin-articles';
+import { useToast } from '@/components/ui/ToastContainer';
+import MarkdownEditor from './MarkdownEditor';
 
 interface ArticleEditorProps {
   article: Article | null;
@@ -9,6 +12,7 @@ interface ArticleEditorProps {
 }
 
 export default function ArticleEditor({ article, onClose }: ArticleEditorProps) {
+  const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -79,35 +83,40 @@ export default function ArticleEditor({ article, onClose }: ArticleEditorProps) 
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.content) {
-      alert('El título y el contenido son obligatorios');
+    // Validación de campos obligatorios
+    if (!formData.title?.trim()) {
+      showError('El título es obligatorio');
+      return;
+    }
+    if (!formData.content?.trim()) {
+      showError('El contenido es obligatorio');
+      return;
+    }
+    if (!formData.slug?.trim()) {
+      showError('El slug es obligatorio');
       return;
     }
 
     setSaving(true);
 
     try {
-      const method = article ? 'PUT' : 'POST';
-      const body = article
-        ? { id: article.id, ...formData }
-        : formData;
-
-      const response = await fetch('/api/articles', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (response.ok) {
-        alert('Artículo guardado correctamente');
-        onClose();
+      if (article) {
+        // Update existing article
+        console.log('Actualizando artículo:', article.id);
+        await updateArticle(article.id, formData);
+        showSuccess('Artículo actualizado correctamente');
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error || 'Error al guardar'}`);
+        // Create new article
+        console.log('Creando nuevo artículo');
+        const id = await createArticle(formData as any);
+        console.log('Artículo creado con ID:', id);
+        showSuccess('Artículo creado correctamente');
       }
+
+      onClose();
     } catch (error) {
       console.error('Error saving article:', error);
-      alert('Error al guardar el artículo');
+      showError(error instanceof Error ? error.message : 'Error desconocido');
     } finally {
       setSaving(false);
     }
@@ -168,16 +177,14 @@ export default function ArticleEditor({ article, onClose }: ArticleEditorProps) 
             />
           </div>
 
-          {/* Content */}
+          {/* Content with Markdown Editor */}
           <div>
             <label className="block text-sm font-semibold mb-2">Contenido (Markdown) *</label>
-            <textarea
-              name="content"
+            <MarkdownEditor
               value={formData.content}
-              onChange={handleChange}
-              rows={20}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 font-mono text-sm"
-              placeholder="Contenido del artículo en formato Markdown"
+              onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+              placeholder="Escribe el contenido del artículo en formato Markdown..."
+              minHeight="600px"
             />
           </div>
 

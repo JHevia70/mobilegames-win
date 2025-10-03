@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Breaking News</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Test Breaking News Banner</h1>
+    <div id="result">Loading...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCywwj_27AOLJVq_hrhArfN--k1eStHOdA",
+            authDomain: "mobilegames-win.firebaseapp.com",
+            projectId: "mobilegames-win",
+            storageBucket: "mobilegames-win.firebasestorage.app",
+            messagingSenderId: "1055853638509",
+            appId: "1:1055853638509:web:e7fb57c0e2e8d7c0b7c9b5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        console.log('Firebase initialized');
+
+        db.collection('breaking_news')
+            .where('active', '==', true)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .get()
+            .then(snapshot => {
+                console.log('Query result:', snapshot.size, 'documents');
+                if (!snapshot.empty) {
+                    const doc = snapshot.docs[0];
+                    const data = doc.data();
+                    document.getElementById('result').innerHTML = `
+                        <h2>Active Breaking News Found!</h2>
+                        <p><strong>Title:</strong> ${data.title}</p>
+                        <p><strong>Content:</strong> ${data.content.substring(0, 200)}...</p>
+                        <p><strong>Active:</strong> ${data.active}</p>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = '<p>No active breaking news found</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>

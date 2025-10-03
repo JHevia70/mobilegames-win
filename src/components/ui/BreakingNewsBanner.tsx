@@ -16,10 +16,12 @@ interface BreakingNews {
 export default function BreakingNewsBanner() {
   const [news, setNews] = useState<BreakingNews | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchActiveNews = async () => {
       try {
+        console.log('🔍 Fetching breaking news with Firebase SDK...');
         const newsRef = collection(db, 'breaking_news');
         const q = query(
           newsRef,
@@ -29,18 +31,40 @@ export default function BreakingNewsBanner() {
         );
 
         const querySnapshot = await getDocs(q);
+        console.log('📰 Query result:', querySnapshot.size, 'documents');
 
         if (!querySnapshot.empty) {
           const doc = querySnapshot.docs[0];
-          setNews({ id: doc.id, ...doc.data() } as BreakingNews);
+          const newsData = { id: doc.id, ...doc.data() } as BreakingNews;
+          console.log('✅ Breaking news found:', newsData.title);
+          setNews(newsData);
+        } else {
+          console.log('⚠️ No active breaking news found');
         }
       } catch (error) {
-        console.error('Error fetching breaking news:', error);
+        console.error('❌ Error fetching breaking news:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchActiveNews();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gaming-red text-white py-2">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center space-x-2 text-sm font-medium">
+            <span className="bg-white text-gaming-red px-2 py-1 rounded text-xs font-bold">
+              ÚLTIMA HORA
+            </span>
+            <span>Cargando noticias...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!news) {
     return (
