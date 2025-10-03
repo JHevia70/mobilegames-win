@@ -486,14 +486,16 @@ async function getArticleImage(searchTerm, size = 'hero', pageOverride = null) {
     const gameGenres = ['rpg', 'strategy', 'action', 'puzzle', 'racing', 'shooter', 'moba', 'fps'];
     const foundGenre = gameGenres.find(genre => simplifiedTerm.includes(genre));
 
-    // Search strategies - focus on people playing mobile games
+    // Search strategies - mix of people playing and gaming devices for variety
     const searchStrategies = [
       foundGenre ? `people playing ${foundGenre} mobile game` : null,
+      foundGenre ? `${foundGenre} mobile game` : null,
       'people playing mobile games',
-      'person using smartphone gaming',
-      'mobile gamer playing',
       'smartphone gaming lifestyle',
-      'mobile gaming player'
+      'mobile gaming',
+      'video game controller',
+      'gaming phone',
+      'mobile gamer'
     ].filter(Boolean);
 
     for (let strategy of searchStrategies) {

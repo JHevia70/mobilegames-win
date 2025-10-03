@@ -218,11 +218,13 @@ Estos cinco títulos representan la evolución de la estrategia móvil, cada uno
 // Get article image from Unsplash - focus on people playing mobile games
 async function getArticleImage(searchTerm) {
   try {
-    // Enhanced search strategies for mobile gaming with people
+    // Enhanced search strategies - mix of people and devices for variety
     const searchStrategies = [
       `people playing ${searchTerm}`,
+      `${searchTerm} mobile game`,
       'people playing mobile games',
-      'smartphone gaming player',
+      'smartphone gaming',
+      'gaming phone',
       'mobile gamer'
     ];
 
