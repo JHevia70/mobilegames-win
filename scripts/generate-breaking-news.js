@@ -18,7 +18,7 @@ const db = admin.firestore();
 // Search web for breaking news
 async function searchBreakingNews() {
   const model = genAI.getGenerativeModel({
-    model: 'models/gemini-2.0-flash-exp',
+    model: 'models/gemini-2.0-flash',
     tools: [{
       googleSearch: {}
     }],
@@ -47,7 +47,7 @@ Dame las 3 noticias más importantes y recientes.`;
 // Generate breaking news content
 async function generateBreakingNewsContent(trendsInfo) {
   const model = genAI.getGenerativeModel({
-    model: 'models/gemini-2.0-flash-exp',
+    model: 'models/gemini-2.0-flash',
     generationConfig: {
       temperature: 0.7,
       topP: 0.95,

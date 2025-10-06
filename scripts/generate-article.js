@@ -4,7 +4,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { HfInference } = require('@huggingface/inference');
 const admin = require('firebase-admin');
 const { createApi } = require('unsplash-js');
 const { createClient } = require('pexels');
@@ -12,14 +11,9 @@ const gplay = require('google-play-scraper').default || require('google-play-scr
 const fs = require('fs');
 
 // Initialize services
-// Use HuggingFace with Qwen as fallback when Gemini quota is exceeded
-const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE === 'true';
-const HUGGINGFACE_TOKEN = process.env.HUGGINGFACE_TOKEN;
-
-console.log(`🤖 AI Provider: ${USE_HUGGINGFACE ? 'HuggingFace (Qwen 2.5 7B)' : 'Gemini'}`);
+console.log(`🤖 AI Provider: Google Gemini 2.0 Flash (100% GRATIS - 1,500 requests/día)`);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const hf = HUGGINGFACE_TOKEN ? new HfInference(HUGGINGFACE_TOKEN) : null;
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_ACCESS_KEY,
 });
@@ -27,35 +21,6 @@ const pexels = createClient('l3oFCkkLv3MWsfAMDKKaimq8mqVindRDg6JzpzWM6XY48ywkCQc
 
 // Cache for game data
 const gameCache = new Map();
-
-// HuggingFace API helper function using Qwen 2.5
-async function callHuggingFace(prompt, systemPrompt = '') {
-  if (!hf) {
-    throw new Error('HuggingFace client not initialized. Set HUGGINGFACE_TOKEN environment variable.');
-  }
-
-  const fullPrompt = systemPrompt
-    ? `${systemPrompt}\n\n${prompt}`
-    : prompt;
-
-  try {
-    // Using Qwen 2.5 7B Instruct model (smaller, faster, free)
-    const response = await hf.chatCompletion({
-      model: 'Qwen/Qwen2.5-7B-Instruct',
-      messages: [
-        ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-    });
-
-    return response.choices[0].message.content;
-  } catch (error) {
-    console.error('   ❌ HuggingFace API error:', error.message);
-    throw error;
-  }
-}
 
 // Search for a game in Google Play Store
 async function searchGameInPlayStore(gameName) {
@@ -225,20 +190,14 @@ Sé específico y actual. Solo menciona cosas que estén realmente siendo tenden
   try {
     console.log('🔥 Discovering trending topics in mobile gaming...');
 
-    let response;
-    if (USE_HUGGINGFACE) {
-      console.log('   Using HuggingFace (Qwen 2.5 7B)...');
-      response = await callHuggingFace(discoveryPrompt);
-    } else {
-      const model = genAI.getGenerativeModel({
-        model: 'models/gemini-2.0-flash-exp',
-        tools: [{
-          googleSearch: {}
-        }],
-      });
-      const result = await model.generateContent(discoveryPrompt);
-      response = await result.response.text();
-    }
+    const model = genAI.getGenerativeModel({
+      model: 'models/gemini-2.0-flash',
+      tools: [{
+        googleSearch: {}
+      }],
+    });
+    const result = await model.generateContent(discoveryPrompt);
+    const response = await result.response.text();
 
     console.log('📊 Trending topics discovered');
     return response;
@@ -304,20 +263,15 @@ Proporciona información verificable y actual.`;
   try {
     console.log(`🔍 Searching web for: ${topic}`);
 
-    if (USE_HUGGINGFACE) {
-      console.log('   Using HuggingFace (Qwen 2.5 7B)...');
-      return await callHuggingFace(searchPrompt);
-    } else {
-      const model = genAI.getGenerativeModel({
-        model: 'models/gemini-2.0-flash-exp',
-        tools: [{
-          googleSearch: {}
-        }],
-      });
-      const result = await model.generateContent(searchPrompt);
-      const response = await result.response;
-      return response.text();
-    }
+    const model = genAI.getGenerativeModel({
+      model: 'models/gemini-2.0-flash',
+      tools: [{
+        googleSearch: {}
+      }],
+    });
+    const result = await model.generateContent(searchPrompt);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
     console.error('Error searching trends:', error);
     return '';
@@ -450,24 +404,19 @@ IMÁGENES - MUY IMPORTANTE:
 `;
 
   try {
-    if (USE_HUGGINGFACE) {
-      console.log('   Using HuggingFace (Qwen 2.5 7B) for article generation...');
-      return await callHuggingFace(prompt, 'You are an expert gaming journalist specializing in mobile games. Write detailed, accurate, and engaging articles in Spanish.');
-    } else {
-      const model = genAI.getGenerativeModel({
-        model: 'models/gemini-2.0-flash-exp',
-        generationConfig: {
-          temperature: 0.7,
-          topP: 0.95,
-          topK: 64,
-          maxOutputTokens: 8192,
-          responseMimeType: "text/plain",
-        }
-      });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    }
+    const model = genAI.getGenerativeModel({
+      model: 'models/gemini-2.0-flash',
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain",
+      }
+    });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
     console.error('Error generating content:', error);
     throw error;
