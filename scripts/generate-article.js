@@ -11,7 +11,7 @@ const gplay = require('google-play-scraper').default || require('google-play-scr
 const fs = require('fs');
 
 // Initialize services
-console.log(`🤖 AI Provider: Google Gemini 2.0 Flash (100% GRATIS - 1,500 requests/día)`);
+console.log(`🤖 AI Provider: Google Gemini 2.5 Flash-Lite (100% GRATIS - 1,000 requests/día)`);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const unsplash = createApi({
@@ -191,7 +191,7 @@ Sé específico y actual. Solo menciona cosas que estén realmente siendo tenden
     console.log('🔥 Discovering trending topics in mobile gaming...');
 
     const model = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash',
+      model: 'models/gemini-2.5-flash-lite',
       tools: [{
         googleSearch: {}
       }],
@@ -264,7 +264,7 @@ Proporciona información verificable y actual.`;
     console.log(`🔍 Searching web for: ${topic}`);
 
     const model = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash',
+      model: 'models/gemini-2.5-flash-lite',
       tools: [{
         googleSearch: {}
       }],
@@ -405,7 +405,7 @@ IMÁGENES - MUY IMPORTANTE:
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash',
+      model: 'models/gemini-2.5-flash-lite',
       generationConfig: {
         temperature: 0.7,
         topP: 0.95,

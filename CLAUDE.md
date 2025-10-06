@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MobileGames.win is an automated mobile gaming review website that generates daily articles using Google Gemini AI. The system operates autonomously via GitHub Actions, creating fresh content and deploying to Firebase Hosting without manual intervention.
 
-**Tech Stack**: Next.js 14 (App Router), TypeScript, Firebase (Firestore/Hosting), Google Gemini 2.0 Flash (Free), Tailwind CSS
+**Tech Stack**: Next.js 14 (App Router), TypeScript, Firebase (Firestore/Hosting), Google Gemini 2.5 Flash-Lite (Free), Tailwind CSS
 
 **Live Site**: https://mobilegames-win.web.app
 

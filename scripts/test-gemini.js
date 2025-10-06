@@ -13,7 +13,7 @@ async function testGeminiConnection() {
     // Test 1: Simple text generation
     console.log('📝 Test 1: Simple text generation');
     const model = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash'
+      model: 'models/gemini-2.5-flash-lite'
     });
 
     const prompt = 'Di "Hola" en español y confirma que funcionas correctamente.';
@@ -25,7 +25,7 @@ async function testGeminiConnection() {
     // Test 2: Google Search integration
     console.log('📝 Test 2: Google Search integration');
     const searchModel = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash',
+      model: 'models/gemini-2.5-flash-lite',
       tools: [{
         googleSearch: {}
       }],
@@ -40,7 +40,7 @@ async function testGeminiConnection() {
     // Test 3: Gaming article generation (short version)
     console.log('📝 Test 3: Gaming article generation (short)');
     const articleModel = genAI.getGenerativeModel({
-      model: 'models/gemini-2.0-flash',
+      model: 'models/gemini-2.5-flash-lite',
       generationConfig: {
         temperature: 0.7,
         topP: 0.95,
@@ -56,9 +56,9 @@ async function testGeminiConnection() {
     console.log('✅ Response:', articleResponse.text());
     console.log();
 
-    console.log('🎉 All tests passed! Gemini 2.0 Flash is working correctly.');
-    console.log('📊 Model: gemini-2.0-flash');
-    console.log('📈 Free tier: 1,500 requests/day');
+    console.log('🎉 All tests passed! Gemini 2.5 Flash-Lite is working correctly.');
+    console.log('📊 Model: gemini-2.5-flash-lite');
+    console.log('📈 Free tier: 1,000 requests/day');
     console.log('🔍 Google Search: ✅ Enabled');
 
   } catch (error) {
